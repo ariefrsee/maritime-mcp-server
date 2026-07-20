@@ -1,0 +1,78 @@
+# Maritime Vessel Data — MCP Server
+
+A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that
+exposes maritime vessel data as standard MCP **tools** and a **resource**. Any
+MCP-compatible client — Claude Desktop, an agent framework, an IDE extension —
+can query live vessel data through the protocol instead of a bespoke integration.
+
+Built with Python and the official [`mcp`](https://pypi.org/project/mcp/) SDK
+(FastMCP). It is the same tool surface used by the companion
+[maritime-vessel-agent](https://github.com/Ariefrse/maritime-vessel-agent)
+project, published here as a reusable, protocol-standard server.
+
+## What it demonstrates
+
+| Capability | Where |
+|---|---|
+| Model Context Protocol (MCP) | `src/server.py` — a FastMCP server over stdio |
+| Tool design | `search_vessels`, `vessels_near_port`, `vessel_details` |
+| MCP resources | `vessels://all` exposes the dataset as a readable resource |
+| Interoperability | works with any MCP client — no client-specific code |
+
+## Tools
+
+| Tool | Purpose |
+|---|---|
+| `search_vessels(vessel_type, flag, status)` | filter the fleet by type / flag / navigational status |
+| `vessels_near_port(port, radius_nm)` | vessels within a radius of a named port, distance-annotated |
+| `vessel_details(query)` | look up one vessel by MMSI or name |
+
+Resource `vessels://all` returns the full dataset.
+
+## Setup
+
+```bash
+cd maritime-mcp-server
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Verify it works (offline)
+
+```bash
+python -m src.smoke_test
+```
+
+This exercises every tool without needing an MCP client.
+
+## Run the server
+
+```bash
+python -m src.server        # serves over stdio (how MCP clients launch it)
+```
+
+## Use it from Claude Desktop
+
+Add the server to your `claude_desktop_config.json`
+(`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "maritime-vessel-data": {
+      "command": "/absolute/path/to/maritime-mcp-server/.venv/bin/python",
+      "args": ["-m", "src.server"],
+      "cwd": "/absolute/path/to/maritime-mcp-server"
+    }
+  }
+}
+```
+
+Restart Claude Desktop, then ask it questions like *"Which tankers are at anchor
+near Port Klang?"* — it will call the server's tools directly.
+
+## Extending it
+
+- Point `data/vessels.json` at a live AIS feed.
+- Add tools (route ETA, anchorage occupancy) — clients discover them automatically.
+- Add authentication and switch to the HTTP/SSE transport for remote clients.
