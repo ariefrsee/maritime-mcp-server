@@ -6,7 +6,7 @@ MCP-compatible client — Claude Desktop, an agent framework, an IDE extension �
 can query live vessel data through the protocol instead of a bespoke integration.
 
 Built with Python and the official [`mcp`](https://pypi.org/project/mcp/) SDK
-(FastMCP). It is the same tool surface used by the companion
+(FastMCP). MIT licensed. Requires Python 3.11 or newer. It is the same tool surface used by the companion
 [maritime-vessel-agent](https://github.com/Ariefrse/maritime-vessel-agent)
 project, published here as a reusable, protocol-standard server.
 
@@ -150,3 +150,7 @@ until it next sends static data.
 - Widen the bounding box in `collector.py` to cover more than Malaysian waters.
 - Add tools (route ETA, anchorage occupancy) — clients discover them automatically.
 - Add authentication and switch to the HTTP/SSE transport for remote clients.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
