@@ -1,0 +1,61 @@
+{
+  "shipline_version": "1.1.0",
+  "project": {
+    "name": "maritime-mcp-server",
+    "kind": "code",
+    "root": "/Users/ariefrse/maritime-mcp-server",
+    "description": "Python FastMCP server exposing maritime vessel data as MCP tools and a resource over stdio"
+  },
+  "git": {
+    "is_repo": true,
+    "protected_branches": [
+      "main"
+    ],
+    "branch_prefix": {
+      "feature": "feat/",
+      "fix": "fix/",
+      "chore": "chore/"
+    },
+    "remote": "origin"
+  },
+  "conventions": {
+    "date_format": "YYYY-MM-DD",
+    "commit_attribution": "none",
+    "github_writes": "full",
+    "commit_identity": {
+      "name": "Ariefrse",
+      "email": "merchgpt@gmail.com"
+    },
+    "copy_style": {
+      "emoji": false,
+      "dash_punctuation": false
+    },
+    "branch_per_story": true
+  },
+  "verify": {
+    "mode": "command",
+    "commands": [
+      ".venv/bin/python -m maritime_mcp_server.smoke_test"
+    ],
+    "checklist": []
+  },
+  "paths": {
+    "source_dir": "src",
+    "tests_dir": "tests",
+    "shipline_dir": ".shipline",
+    "work_dir": ".shipline/work",
+    "guardrails_file": ".shipline/guardrails.yaml"
+  },
+  "active": {
+    "milestone": "M01",
+    "story": null
+  },
+  "milestones": [
+    {
+      "id": "M01",
+      "title": "Harden and package",
+      "state": "in_progress",
+      "path": ".shipline/work/M01-harden-and-package/master-plan.md"
+    }
+  ]
+}

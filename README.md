@@ -31,16 +31,21 @@ Resource `vessels://all` returns the full dataset.
 
 ## Setup
 
+Requires Python 3.10 or newer.
+
 ```bash
+git clone https://github.com/Ariefrse/maritime-mcp-server.git
 cd maritime-mcp-server
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+python3 -m venv .venv && source .venv/bin/activate
+pip install .
 ```
+
+That puts a `maritime-mcp-server` command on your PATH inside the environment.
 
 ## Verify it works (offline)
 
 ```bash
-python -m src.smoke_test
+python -m maritime_mcp_server.smoke_test
 ```
 
 This exercises every tool without needing an MCP client.
@@ -48,8 +53,11 @@ This exercises every tool without needing an MCP client.
 ## Run the server
 
 ```bash
-python -m src.server        # serves over stdio (how MCP clients launch it)
+maritime-mcp-server        # serves over stdio (how MCP clients launch it)
 ```
+
+The dataset ships inside the package, so the server runs correctly from any
+working directory.
 
 ## Use it from Claude Desktop
 
@@ -60,13 +68,14 @@ Add the server to your `claude_desktop_config.json`
 {
   "mcpServers": {
     "maritime-vessel-data": {
-      "command": "/absolute/path/to/maritime-mcp-server/.venv/bin/python",
-      "args": ["-m", "src.server"],
-      "cwd": "/absolute/path/to/maritime-mcp-server"
+      "command": "/absolute/path/to/.venv/bin/maritime-mcp-server"
     }
   }
 }
 ```
+
+No `args` and no `cwd` are needed. If the environment is on your PATH already,
+`"command": "maritime-mcp-server"` is enough.
 
 Restart Claude Desktop, then ask it questions like *"Which tankers are at anchor
 near Port Klang?"* — it will call the server's tools directly.

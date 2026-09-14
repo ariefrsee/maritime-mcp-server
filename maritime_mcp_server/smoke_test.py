@@ -5,7 +5,7 @@ exercise the tools directly and confirm they return sensible data before wiring
 the server into a real MCP client.
 
 Run:
-    python -m src.smoke_test
+    python -m maritime_mcp_server.smoke_test
 """
 
 from __future__ import annotations
