@@ -12,7 +12,121 @@
 
 version: 1
 project: maritime-mcp-server
-guardrails: []
+guardrails:
+
+  - id: G1
+    status: active
+    title: Every dependency gets an upper bound at the next major version
+    reason: >
+      requirements.txt declared mcp>=1.2.0 with no ceiling. A fresh install
+      resolved to mcp 2.2.0, where FastMCP was renamed to MCPServer and
+      mcp.server.fastmcp was removed, so the server could not import at all.
+      Existing environments kept working, which is why it went unnoticed. The
+      repository had been broken for every new user since mcp 2.0 shipped.
+    applies_to: [backend]
+    severity: critical
+    discovered_in: S01
+    discovered_on: 14/09/2026
+    injection: >
+      When declaring a dependency, always bound it at the next major version,
+      for example "mcp>=1.2.0,<2". An unbounded floor silently opts the project
+      into every future breaking change, and the resulting failure is invisible
+      to anyone who already has a working environment. If you deliberately want
+      an unbounded range, say so out loud and give the reason.
+
+  - id: G2
+    status: active
+    title: Never write a checkable fact into a plan without running the command that checks it
+    reason: >
+      The S01 plan asserted that git log --follow would reach commit e0cd9ad and
+      that server.py had three commits of history. Neither was ever true.
+      e0cd9ad added only .gitignore, README.md and requirements.txt, and the
+      files in question were created in c0de61f. A test case then failed for a
+      reason that had nothing to do with the implementation, costing an
+      investigation to establish that the plan, not the work, was wrong.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: high
+    discovered_in: S01
+    discovered_on: 14/09/2026
+    injection: >
+      If a plan states something that a command could confirm, such as a commit
+      hash, a file path, a version number, a line count or an existing
+      behaviour, run that command while writing the plan and paste what it
+      returned. Do not write it from memory or inference. An acceptance
+      criterion built on an unchecked fact tests the plan, not the work.
+
+  - id: G3
+    status: active
+    title: Resolve package data through the import system, never by walking from __file__
+    reason: >
+      DATA_FILE used Path(__file__).resolve().parent.parent to reach a sibling
+      data directory. That directory exists only in a git checkout. Installed
+      from a wheel, the server started normally and then failed on the first
+      tool call, which is the worst shape of failure to diagnose.
+    applies_to: [backend]
+    severity: high
+    discovered_in: S01
+    discovered_on: 14/09/2026
+    injection: >
+      Data files a package needs at runtime live inside the package and are
+      resolved with importlib.resources.files(__package__), not with paths
+      derived from __file__. Any lookup that climbs above the package directory
+      is a bug that only appears after installation.
+
+  - id: G4
+    status: active
+    title: Verify packaging with a built artifact installed outside the repository
+    reason: >
+      pip install -e . succeeded and every check passed while the question the
+      step existed to answer, does the dataset actually ship, went untested. An
+      editable install points at the source tree, so a missing package data
+      declaration is invisible to it.
+    applies_to: [backend]
+    severity: high
+    discovered_in: S01
+    discovered_on: 14/09/2026
+    injection: >
+      Never accept an editable install as evidence that packaging works. Build
+      the real artifact, inspect its contents for the non code files it is
+      supposed to carry, then install it into an environment created outside the
+      repository and exercise it from a directory that is not the project root.
+
+  - id: G5
+    status: active
+    title: An acceptance criterion must be evaluable at the phase that checks it
+    reason: >
+      Three of S01's eight criteria required a commit to exist, but the commit
+      is gated behind the retro. This forced weaker proxy checks during
+      verification and a reordering of the pipeline during test.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: medium
+    discovered_in: S01
+    discovered_on: 14/09/2026
+    injection: >
+      When writing acceptance criteria, check each one against the phase that
+      will evaluate it. A criterion that depends on a commit, a deployment, a
+      release or a merge cannot be evaluated during build. Either reword it so
+      it can be, or state plainly in the plan which phase it defers to and what
+      weaker evidence stands in until then.
+
+  - id: G6
+    status: active
+    title: Read the staged file list before every commit
+    reason: >
+      git add -A staged four .DS_Store files and would have staged dist/,
+      build/ and *.egg-info/, all produced by the packaging steps this story
+      introduced and none covered by .gitignore. A first attempt to exclude the
+      .DS_Store files used a single path and missed three nested copies.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: medium
+    discovered_in: S01
+    discovered_on: 14/09/2026
+    injection: >
+      Run git status --short and read every line before committing. Never trust
+      that git add -A staged only what you intended, and never trust that an
+      exclusion worked without confirming the file is absent from the staged
+      list. When a story introduces a new build step, update .gitignore for the
+      artifacts it produces in that same story.
 
 # Template for a new entry:
 #

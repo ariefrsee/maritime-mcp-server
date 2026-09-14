@@ -2,14 +2,14 @@
 pipeline_state:
   milestone: M01
   title: Harden and package
-  state: planning          # planning | in_progress | verification | done
+  state: in_progress       # planning | in_progress | verification | done
   branch: milestone/M01
   started_at: 2026-09-14
   due_date: TBD
   last_updated: 2026-09-14
   stories_total: 1
-  stories_done: 0
-  stories_open: 1
+  stories_done: 1
+  stories_open: 0
 ---
 
 # M01: Harden and package
@@ -25,7 +25,7 @@ Status legend: done, in progress, planned, blocked.
 |-------|-------|
 | Milestone | M01 |
 | Title | Harden and package |
-| State | Planning |
+| State | In progress |
 | Branch | `milestone/M01` |
 | Started | 2026-09-14 |
 | Due | TBD |
@@ -35,7 +35,7 @@ Status legend: done, in progress, planned, blocked.
 What has to be true when this milestone closes. Each goal maps to at least one
 story. A goal with no story behind it is a wish, not a goal.
 
-- [ ] G1: The server is an installable Python package with a declared dependency set and a pinned Python version, not a loose `src/` folder plus a one line requirements file.
+- [x] G1: The server is an installable Python package with a declared dependency set and a pinned Python version, not a loose `src/` folder plus a one line requirements file.
 - [ ] G2: Every tool has real tests that assert behaviour, not just that the call returns without raising. The smoke test stays as the fast offline check.
 - [ ] G3: Every tool validates its inputs and returns a clear, structured error for bad input instead of raising or returning something misleading.
 
@@ -59,7 +59,7 @@ Deferred deliberately. Write the reason, not just the item.
 
 | Story | Title | Status | Size | Priority | Branch | Plan |
 |-------|-------|--------|------|----------|--------|------|
-| S01 | Make the server an installable package | Planned | M | High | `chore/S01-installable-package` | [plan](S01-installable-package/plan.md) |
+| S01 | Make the server an installable package | Done | M | High | `chore/S01-installable-package` | [plan](S01-installable-package/plan.md) |
 
 ## 5. Open risks
 
@@ -67,6 +67,7 @@ Deferred deliberately. Write the reason, not just the item.
 |------|--------|------------|-------|
 | Packaging changes break the documented Claude Desktop launch command in the README | Users following the README get a server that will not start | Update the README in the same story that changes the entry point, and verify the documented command by hand | ariefrse |
 | `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL` in the shell override repo git config silently | Commits land under an unintended identity | `commit_identity` is recorded in config.json. Verify authorship after every commit, not before | ariefrse |
+| The `mcp<2` pin is a holding position. The code is written against a superseded major version | The gap widens over time and the eventual migration gets harder | Raised in S01 retro carry forward. Strongest candidate for the next story | ariefrse |
 
 ## 6. Closing checklist
 

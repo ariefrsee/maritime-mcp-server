@@ -34,6 +34,7 @@ Resource `vessels://all` returns the full dataset.
 Requires Python 3.10 or newer.
 
 ```bash
+git clone https://github.com/Ariefrse/maritime-mcp-server.git
 cd maritime-mcp-server
 python3 -m venv .venv && source .venv/bin/activate
 pip install .

@@ -3,13 +3,13 @@ pipeline_state:
   story_id: S01
   milestone: M01
   title: Make the server an installable package
-  current_phase: build     # plan | build | verify | test | retro | deliver | done
-  phases_completed: [plan]
+  current_phase: done      # plan | build | verify | test | retro | deliver | done
+  phases_completed: [plan, build, verify, test, retro, runbook, deliver]
   approved_by_user: true
   branch: chore/S01-installable-package
   started_at: 2026-09-14
   last_updated: 2026-09-14
-  guardrails_loaded: []
+  guardrails_loaded: []   # none existed at plan time; S01 produced G1 to G6
 ---
 
 # S01: Make the server an installable package
@@ -179,7 +179,7 @@ directory, top to bottom, touching nothing else, and reach a running server.
 | AC-2 | Running `maritime-mcp-server` from a directory that is not the repository starts the stdio server, and `vessel_details("Kowloon Express")` returns MMSI 477055221 | [x] |
 | AC-3 | A built wheel, installed into an environment that has never seen the repository, contains `vessels.json` and serves all 18 records | [x] |
 | AC-4 | No import path anywhere in the repository still refers to a package named `src` | [x] |
-| AC-5 | `git log --follow` on the moved server and data files still reaches commit `e0cd9ad` | [ ] blocked until commit |
+| AC-5 | ~~`git log --follow` on the moved server and data files still reaches commit `e0cd9ad`~~ **corrected during test:** reaches `c0de61f`, the commit that created them | [x] |
 | AC-6 | The command in `.shipline/config.json` `verify.commands` runs as written and passes | [x] |
 | AC-7 | The README, followed literally by someone who has not seen the code, produces a running server, with no absolute paths and no `cwd` setting | [x] see note |
 | AC-8 | The three tools and the `vessels://all` resource return byte identical output to what they returned before this story, for the same inputs | [x] |
@@ -204,9 +204,16 @@ directory, top to bottom, touching nothing else, and reach a running server.
 - **AC-4.** `grep -rn 'src\.'` across `README.md`, the package and `pyproject.toml`
   returns nothing. The two module docstrings that still said `python -m src.server`
   were corrected during step 2.
-- **AC-5.** Cannot be evaluated before the commit exists. `git status` reports
-  `R` rename detection on all three source files and on the dataset, which is the
-  precondition for `--follow` working, but it is not the check itself.
+- **AC-5.** The criterion as originally written was wrong and failed TC5. It
+  asserted that `--follow` would reach `e0cd9ad` and that `server.py` had three
+  commits of history. Neither was true before this story started: `e0cd9ad`
+  added only `.gitignore`, `README.md` and `requirements.txt`, and both
+  `server.py` and `vessels.json` were created in `c0de61f`. I wrote a
+  verifiable claim into the plan without running the command that would have
+  checked it. The underlying intent, that history survives the rename, is met:
+  `git log --follow` crosses the rename to `c0de61f`, and `git show --stat -M`
+  reports `{src => maritime_mcp_server}` for all three files and
+  `{data => maritime_mcp_server/data}` for the dataset.
 - **AC-6.** `.venv/bin/python -m maritime_mcp_server.smoke_test`, run exactly as
   recorded in `config.json`, printed all four lines and `All smoke checks passed.`
 - **AC-8.** Eight tool and resource outputs were captured before step 3 and again

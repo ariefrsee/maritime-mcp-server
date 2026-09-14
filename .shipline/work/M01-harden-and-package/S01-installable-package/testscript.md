@@ -9,12 +9,15 @@ what happened when it fails. Do not tick a case you did not actually run.
 
 Every acceptance criterion in the plan must be covered by at least one case.
 
-A note on what I already ran. During build I verified AC-1 through AC-4 and AC-6
-through AC-8 with the evidence recorded in section 6 of the plan. The cases below
-are not a re-run for its own sake. TC1, TC2 and TC8 deliberately start from a
-real git clone, which I could not do because nothing is committed yet, and that
-is the one path a stranger will actually take. TC5 and TC9 could not be run at
-all before a commit exists.
+**Run by the assistant on 2026-09-14, at the user's instruction, after committing
+`9127c1b` so the clone based cases could test the real path.** The user chose this
+over running the script by hand. That is a weaker check than an independent human
+run, and it is recorded here rather than glossed over: every result below was
+produced and read by the same party that wrote the code.
+
+Outcome: nine of ten pass. TC5 failed against its stated expectation, which turned
+out to be a mis-specified criterion rather than a defect. TC2 passed but exposed a
+documentation gap, now fixed.
 
 Scratch space for these cases:
 
@@ -29,9 +32,9 @@ Delete it when you are done: `rm -rf "$TD"`.
 
 ## Prerequisites
 
-- [ ] On branch `chore/S01-installable-package`
-- [ ] `git status` shows the staged renames and the new `pyproject.toml`
-- [ ] Python 3.10 or newer available as `python3`
+- [x] On branch `chore/S01-installable-package`
+- [x] Committed as `9127c1b` so the clone based cases could run for real
+- [x] Python 3.14.6 available as `python3`
 
 ---
 
@@ -58,9 +61,9 @@ contains the old `src/` layout and `pip install .` will fail for want of a
 `pyproject.toml`. If you are running the script before committing, mark this
 blocked rather than failed.
 
-**Result:** [ ] Pass [ ] Fail [ ] Blocked, not yet committed
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Cloned to a temp dir, checked out the branch, `pip install .` exited 0, `.venv/bin/maritime-mcp-server` present.
 
 ---
 
@@ -84,9 +87,9 @@ nothing more.
 exiting with a traceback. The JSON block contains no `cwd` key and no `args`
 array.
 
-**Result:** [ ] Pass [ ] Fail [ ] Blocked, not yet committed
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Every printed command worked. Offline check ended with `All smoke checks passed.` Server started and exited 0 on EOF. JSON block has no `cwd` and no `args`. **Gap found:** Setup opened with `cd maritime-mcp-server` and never said to clone first. Pre-existing, not introduced by this story. Fixed by adding the `git clone` line.
 
 ---
 
@@ -107,9 +110,9 @@ gave you a server that started and then failed on first use.
 
 **Expected:** prints `477055221`. No traceback, no file not found.
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Run from `cwd=/`. Printed `477055221`.
 
 ---
 
@@ -137,9 +140,9 @@ MCP server actually answers a client. This drives a real handshake.
 server can exit on stdin EOF before handling the last request. Re-run. I hit this
 during build and it is documented in the retro.
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Two lines received. `serverInfo` named `maritime-vessel-data` version 1.30.0, `tools/call` returned MMSI 477055221. No EOF race this time.
 
 ---
 
@@ -161,9 +164,9 @@ Three commits for `server.py`.
 **Note:** this requires the commit from gate 3 to exist. Before that, `--follow`
 on a staged rename returns nothing, which is not a failure.
 
-**Result:** [ ] Pass [ ] Fail [ ] Blocked, not yet committed
+**Result:** [x] Pass, after correcting the criterion
 
-**Notes:**
+**Notes:** **Failed as written.** `--follow` reaches `c0de61f`, not `e0cd9ad`. Investigated: `e0cd9ad` added only `.gitignore`, `README.md` and `requirements.txt`. Both `server.py` and `vessels.json` were created in `c0de61f`, so `c0de61f` is the correct floor and the plan's expectation was never achievable. History does survive: `git show --stat -M` reports `{src => maritime_mcp_server}` and `{data => maritime_mcp_server/data}`. AC-5 corrected in the plan. The fault was mine at plan time, not the implementation's.
 
 ---
 
@@ -186,9 +189,9 @@ either refused as a conflict or installs 2.x. If it installs, step 3's import
 raises `ModuleNotFoundError` with a message about `FastMCP` being renamed to
 `MCPServer`, and reinstalling the project restores 1.x.
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Installed 1.30.0. Forcing `mcp>=2` produced `maritime-mcp-server 0.1.0 requires mcp<2,>=1.2.0, but you have mcp 2.2.0 which is incompatible`, and pip installed it anyway with a warning. Under 2.2.0 the import raised `ModuleNotFoundError` naming the FastMCP to MCPServer rename. `pip install --force-reinstall .` restored 1.30.0 and the import. Note pip warns but does not refuse, so the ceiling protects a clean install, not a forced one.
 
 ---
 
@@ -202,9 +205,9 @@ raises `ModuleNotFoundError` with a message about `FastMCP` being renamed to
 
 **Expected:** no matches.
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** No matches.
 
 ---
 
@@ -223,9 +226,9 @@ clean environment shows it.
 
 **Expected:** Step 2 lists `maritime_mcp_server/data/vessels.json`. Step 4 prints `18`.
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Wheel lists `maritime_mcp_server/data/vessels.json` at 4303 bytes. Fresh venv from the wheel returned 18 records.
 
 ---
 
@@ -243,9 +246,9 @@ wrong, every future story reports a false failure.
 **Expected:** `.venv/bin/python -m maritime_mcp_server.smoke_test` runs and ends
 with `All smoke checks passed.`
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Read `verify.commands` from config and ran it verbatim. Ended with `All smoke checks passed.`
 
 ---
 
@@ -273,9 +276,9 @@ accident.
 - Unknown MMSI returns `{"error": "No vessel found matching '999999999'."}`.
 - `Seri` matches more than one vessel and returns an error with a `candidates` list.
 
-**Result:** [ ] Pass [ ] Fail
+**Result:** [x] Pass
 
-**Notes:**
+**Notes:** Unknown port returned the error listing all five known ports. Unknown MMSI returned the expected error. `Seri` matched 2 vessels and returned the candidates list. Identical to the pre change baseline.
 
 ---
 
@@ -283,18 +286,29 @@ accident.
 
 | AC | Covered by | Passed |
 |----|------------|--------|
-| AC-1 | TC1, TC6 | [ ] |
-| AC-2 | TC3, TC4 | [ ] |
-| AC-3 | TC6, TC8 | [ ] |
-| AC-4 | TC7 | [ ] |
-| AC-5 | TC5 | [ ] |
-| AC-6 | TC9 | [ ] |
-| AC-7 | TC2 | [ ] |
-| AC-8 | TC10 | [ ] |
+| AC-1 | TC1, TC6 | [x] |
+| AC-2 | TC3, TC4 | [x] |
+| AC-3 | TC6, TC8 | [x] |
+| AC-4 | TC7 | [x] |
+| AC-5 | TC5 | [x] after correcting the criterion |
+| AC-6 | TC9 | [x] |
+| AC-7 | TC2 | [x] after fixing the missing clone step |
+| AC-8 | TC10 | [x] |
 
 ## Outcome
 
-- [ ] All cases pass. Move to retro.
+- [x] All cases pass. Move to retro.
 - [ ] Failures found. List them below, then go back to build.
 
-**Failures:**
+**Failures and what came of them:**
+
+1. **TC5 failed against its stated expectation.** Not a defect. The acceptance
+   criterion named a commit that never contained the files it referred to. The
+   criterion was corrected in the plan and the underlying property was verified
+   a different way. Retro finding F-2.
+2. **TC2 passed but found a documentation gap.** The README told the reader to
+   `cd` into a directory it never told them to create. Fixed by adding the
+   `git clone` line. Retro finding F-3.
+
+Neither required going back to build. The first was a plan defect, the second a
+one line documentation fix.
