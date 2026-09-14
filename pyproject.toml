@@ -25,7 +25,7 @@ classifiers = [
 dependencies = ["mcp>=1.2.0,<2", "websockets>=17,<18"]
 
 [project.urls]
-Homepage = "https://github.com/Ariefrse/maritime-mcp-server"
+Homepage = "https://github.com/ariefrsee/maritime-mcp-server"
 
 [project.scripts]
 maritime-mcp-server = "maritime_mcp_server.server:main"

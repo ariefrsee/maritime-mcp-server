@@ -47,7 +47,7 @@ Copy and paste, top to bottom. This is on `main` as of 2026-09-14, so a plain
 clone is all you need.
 
 ```bash
-git clone https://github.com/Ariefrse/maritime-mcp-server.git
+git clone https://github.com/ariefrsee/maritime-mcp-server.git
 cd maritime-mcp-server
 python3 -m venv .venv
 source .venv/bin/activate
