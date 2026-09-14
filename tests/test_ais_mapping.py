@@ -250,3 +250,88 @@ def test_class_b_position_report_has_no_status_field():
                       mmsi="312113000")
     assert rec["status"] is None
     assert rec["lat"] == 1.24
+
+
+# --- not-available sentinels -------------------------------------------------
+#
+# AIS reserves a value in several fields to mean "the transmitter does not have
+# this". Passed through unchecked they read as measurements: a vessel doing
+# 102.3 knots on a course of 360 degrees.
+
+
+def test_speed_sentinel_becomes_none():
+    assert m.speed_over_ground(102.3) is None
+
+
+def test_speed_just_below_the_sentinel_is_kept():
+    """102.2 is the fastest speed AIS can express. It is data, not a sentinel."""
+    assert m.speed_over_ground(102.2) == 102.2
+
+
+def test_zero_speed_is_kept_and_not_confused_with_missing():
+    assert m.speed_over_ground(0) == 0
+
+
+def test_absent_speed_stays_none():
+    assert m.speed_over_ground(None) is None
+
+
+def test_negative_speed_is_rejected():
+    assert m.speed_over_ground(-1) is None
+
+
+def test_course_sentinel_becomes_none():
+    assert m.course_over_ground(360) is None
+
+
+def test_course_just_below_the_sentinel_is_kept():
+    assert m.course_over_ground(359.9) == 359.9
+
+
+def test_course_zero_is_kept():
+    assert m.course_over_ground(0) == 0
+
+
+def test_heading_sentinel_becomes_none():
+    assert m.true_heading(511) is None
+
+
+def test_heading_just_below_the_sentinel_is_kept():
+    assert m.true_heading(510) == 510
+
+
+def test_real_sentinel_message_yields_no_speed(sentinel_messages):
+    """The captured sample, not an invented one (G7).
+
+    One live PositionReport from PSA TAURUS YS52 carrying all three sentinels at
+    once: Sog 102.3, Cog 360, TrueHeading 511.
+    """
+    message = sentinel_messages[0]
+    body = message["Message"][message["MessageType"]]
+
+    assert body["Sog"] == 102.3, "fixture no longer carries the speed sentinel"
+    assert body["Cog"] == 360, "fixture no longer carries the course sentinel"
+    assert body["TrueHeading"] == 511, "fixture no longer carries the heading sentinel"
+
+    fields = m.position_fields(body)
+    assert fields["speed_knots"] is None
+    # The position itself is still good; only the unavailable fields drop out.
+    assert fields["lat"] is not None
+    assert fields["lon"] is not None
+
+
+def test_real_sentinel_message_still_reports_its_status(sentinel_messages):
+    """A vessel with no speed is not a vessel with no information."""
+    message = sentinel_messages[0]
+    body = message["Message"][message["MessageType"]]
+    assert m.position_fields(body)["status"] == "Under way using engine"
+
+
+def test_no_message_in_the_main_fixture_produces_an_impossible_speed(raw_messages):
+    """Regression net over all 199 captured messages."""
+    for message in raw_messages:
+        body = (message.get("Message") or {}).get(message.get("MessageType")) or {}
+        if "Sog" not in body:
+            continue
+        speed = m.position_fields(body)["speed_knots"]
+        assert speed is None or 0 <= speed <= 102.2

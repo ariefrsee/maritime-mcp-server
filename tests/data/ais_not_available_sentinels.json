@@ -1,0 +1,34 @@
+[
+  {
+    "MetaData": {
+      "MMSI": 563070140,
+      "MMSI_String": 563070140,
+      "ShipName": "PSA TAURUS YS52     ",
+      "latitude": 1.27285,
+      "longitude": 103.78631,
+      "time_utc": "2026-09-14 17:54:18.22374573 +0000 UTC"
+    },
+    "MessageType": "PositionReport",
+    "Message": {
+      "PositionReport": {
+        "MessageID": 1,
+        "RepeatIndicator": 0,
+        "UserID": 563070140,
+        "Valid": true,
+        "NavigationalStatus": 0,
+        "RateOfTurn": -128,
+        "Sog": 102.3,
+        "PositionAccuracy": false,
+        "Longitude": 103.786305,
+        "Latitude": 1.2728499999999998,
+        "Cog": 360,
+        "TrueHeading": 511,
+        "Timestamp": 16,
+        "SpecialManoeuvreIndicator": 0,
+        "Spare": 0,
+        "Raim": false,
+        "CommunicationState": 2252
+      }
+    }
+  }
+]

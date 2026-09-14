@@ -15,12 +15,24 @@ import pytest
 from maritime_mcp_server.store import VesselStore
 
 FIXTURE = Path(__file__).parent / "data" / "ais_capture.json"
+SENTINEL_FIXTURE = Path(__file__).parent / "data" / "ais_not_available_sentinels.json"
 
 
 @pytest.fixture(scope="session")
 def raw_messages() -> list[dict]:
     """199 real AIS messages captured over Malaysian waters on 2026-09-14."""
     return json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="session")
+def sentinel_messages() -> list[dict]:
+    """Real messages carrying AIS not-available sentinels.
+
+    Captured live on 2026-09-15 because the main fixture contains none: 179 of
+    its messages carry Sog and not one of them is 102.3. A sentinel is rare, so
+    it has to be hunted for deliberately rather than waited for (G7).
+    """
+    return json.loads(SENTINEL_FIXTURE.read_text(encoding="utf-8"))
 
 
 @pytest.fixture

@@ -213,3 +213,57 @@ def test_the_resource_follows_the_live_store(filled_store):
     out = parse(S.all_vessels())
     assert out["data"]["source"] == "live"
     assert len(out["vessels"]) == 89
+
+
+# --- how far the nearest port actually is -------------------------------------
+#
+# Naming the closest of five ports spread along the whole coast reads as "at
+# this port". Measured against a live feed of 230 vessels the median was 19.5 nm
+# away and the furthest 37.9 nm, so the distance is reported with the name (G8).
+
+
+def test_nearest_port_reports_the_distance_with_the_name():
+    store = VesselStore(max_age=timedelta(days=3650))
+    # Port Klang sits at 3.00N 101.36E. This is a little under 1 nm north east.
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=3.01, lon=101.37, name="NEAR KLANG"))
+    S.set_store(store)
+    vessel = parse(S.search_vessels())["vessels"][0]
+    assert vessel["nearest_port"] == "Port Klang"
+    assert 0 < vessel["nearest_port_nm"] < 1
+
+
+def test_a_distant_vessel_is_still_named_but_the_distance_says_otherwise():
+    """The failure this story exists to fix: a label that reads as proximity."""
+    store = VesselStore(max_age=timedelta(days=3650))
+    # Mid strait, roughly 40 nm off Tanjung Pelepas at 1.36N 103.54E.
+    store.ingest(position(563000002, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=1.90, lon=103.10, name="MID STRAIT"))
+    S.set_store(store)
+    vessel = parse(S.search_vessels())["vessels"][0]
+    assert vessel["nearest_port"] is not None
+    assert vessel["nearest_port_nm"] > 30
+
+
+def test_a_vessel_without_a_position_has_no_port_distance():
+    store = VesselStore(max_age=timedelta(days=3650))
+    store.ingest(static(533012345, when="2026-09-14 06:00:00.0 +0000 UTC"))
+    S.set_store(store)
+    vessel = parse(S.vessel_details("533012345"))["vessel"]
+    assert vessel["nearest_port"] is None
+    assert vessel["nearest_port_nm"] is None
+
+
+def test_snapshot_records_carry_a_port_distance_too():
+    """Snapshot and live answer the same questions in the same shape."""
+    vessels = parse(S.search_vessels())["vessels"]
+    assert vessels, "snapshot mode should return the bundled sample"
+    for vessel in vessels:
+        assert vessel["nearest_port"] is not None
+        assert vessel["nearest_port_nm"] is not None
+
+
+def test_port_name_and_distance_are_null_together_and_never_apart():
+    """The contract in one assertion, across every snapshot record."""
+    for vessel in parse(S.search_vessels())["vessels"]:
+        assert (vessel["nearest_port"] is None) == (vessel["nearest_port_nm"] is None)

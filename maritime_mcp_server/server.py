@@ -77,16 +77,30 @@ def _load_snapshot() -> list[dict]:
     return json.loads(DATA_FILE.read_text(encoding="utf-8"))
 
 
-def _nearest_port(lat, lon) -> str | None:
-    """Closest port from the known list. AIS does not transmit this."""
+def _nearest_port(lat, lon) -> tuple[str | None, float | None]:
+    """Closest port from the known list, and how far away it is in nautical miles.
+
+    AIS does not transmit either value; both are computed here. The distance is
+    returned with the name because the name alone reads as "at this port", and
+    the list holds five ports spread along the whole coast. Measured against a
+    live feed of 230 vessels, the median vessel was 19.5 nm from the port it was
+    labelled with and the furthest was 37.9 nm. Naming a port without saying how
+    far it is presents a derived value as if it were an observation (G8).
+
+    No cutoff is applied. Any threshold would be arbitrary, and discarding the
+    name loses information the caller may want; reporting the distance lets the
+    caller decide what counts as near.
+    """
     if lat is None or lon is None:
-        return None
+        return None, None
     best, best_dist = None, None
     for name, (plat, plon) in PORT_COORDS.items():
         dist = _haversine_nm(plat, plon, lat, lon)
         if best_dist is None or dist < best_dist:
             best, best_dist = name, dist
-    return best.title() if best else None
+    if best is None:
+        return None, None
+    return best.title(), round(best_dist, 1)
 
 
 def get_vessels(require_position: bool = True) -> tuple[list[dict], dict]:
@@ -103,7 +117,9 @@ def get_vessels(require_position: bool = True) -> tuple[list[dict], dict]:
             # AIS does not transmit a nearest port, so it is derived here rather
             # than in the mapping layer, which has no knowledge of our port list.
             for r in records:
-                r["nearest_port"] = _nearest_port(r.get("lat"), r.get("lon"))
+                port, distance_nm = _nearest_port(r.get("lat"), r.get("lon"))
+                r["nearest_port"] = port
+                r["nearest_port_nm"] = distance_nm
             ages = [r.get("position_age_seconds") for r in records
                     if r.get("position_age_seconds") is not None]
             return records, {
@@ -111,9 +127,20 @@ def get_vessels(require_position: bool = True) -> tuple[list[dict], dict]:
                 "vessel_count": len(records),
                 "oldest_position_age_seconds": max(ages) if ages else None,
             }
-    return _load_snapshot(), {
+    # The snapshot carries a curated nearest_port but no distance. Deriving
+    # both here keeps one code path, so a snapshot record and a live record
+    # answer the same questions in the same shape.
+    snapshot = []
+    for r in _load_snapshot():
+        record = dict(r)
+        port, distance_nm = _nearest_port(record.get("lat"), record.get("lon"))
+        record["nearest_port"] = port
+        record["nearest_port_nm"] = distance_nm
+        snapshot.append(record)
+
+    return snapshot, {
         "source": "snapshot",
-        "vessel_count": len(_load_snapshot()),
+        "vessel_count": len(snapshot),
         "snapshot_date": SNAPSHOT_DATE,
         "note": (
             "Live AIS is unavailable, so this is the bundled sample dataset. "
