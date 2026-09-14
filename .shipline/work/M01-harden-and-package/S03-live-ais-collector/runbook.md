@@ -159,12 +159,13 @@ To undo the merge and publish the undo:
 
 ```bash
 git checkout main
-git revert -m 1 <the S03 merge commit>
+git revert -m 1 6aab35f
 git push origin main
 ```
 
-`-m 1` keeps the state of `main` before this story. This adds a new commit rather
-than rewriting history, which is the safe option on a published branch.
+`6aab35f` is this story's merge commit. `-m 1` keeps the state of `main` before
+it. This adds a new commit rather than rewriting history, which is the safe
+option on a published branch.
 
 **Two things rolling back does not undo.** Anyone who installed this version on
 Python 3.11 stays fine, but the older code declared support for 3.10, so the
@@ -184,8 +185,7 @@ Stated plainly rather than implied to be tested.
   which exercises the same wire format, but no AI client was pointed at it. The
   `env` block follows the documented format and was not observed working.
 - **The rollback commands in section 8 were not executed**, since running them
-  would have destroyed the story. The revert command needs the merge commit hash,
-  which does not exist until the merge happens.
+  would have destroyed the story. The merge commit hash they name is real.
 - **Every live figure here was measured once**, on one afternoon, in one region.
   The Strait is busy at midday and much quieter overnight. The vessel counts in
   section 6 are what was observed, not a guarantee. A quiet night could produce
