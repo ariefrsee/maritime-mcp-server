@@ -80,8 +80,33 @@ No `args` and no `cwd` are needed. If the environment is on your PATH already,
 Restart Claude Desktop, then ask it questions like *"Which tankers are at anchor
 near Port Klang?"* — it will call the server's tools directly.
 
+## Where the data comes from
+
+Every tool response opens with a `data` block saying where its answer came from.
+
+```json
+{
+  "data": { "source": "snapshot", "vessel_count": 18, "snapshot_date": "2026-07-20",
+            "note": "Live AIS is unavailable, so this is the bundled sample dataset." },
+  "matches": 1,
+  "vessels": [ ... ]
+}
+```
+
+`source` is either `live` or `snapshot`. Today it is always `snapshot`: the
+server ships with a fixed sample of 18 vessels and the live collector arrives in
+the next piece of work. When it does, nothing about how you call these tools
+changes, and a snapshot answer will never be mistakable for a live one.
+
+Live records are built from AIS, which does not transmit everything these tools
+report. Flag state is derived from the MMSI, length from the hull dimensions, and
+nearest port is computed here. **Anything AIS has not reported yet is `null`,
+never guessed.** A vessel usually broadcasts its position far more often than its
+identity, so a freshly seen ship may have a position and no name, type or length
+until it next sends static data.
+
 ## Extending it
 
-- Point `data/vessels.json` at a live AIS feed.
+- Connect the live AIS collector so `source` becomes `live`.
 - Add tools (route ETA, anchorage occupancy) — clients discover them automatically.
 - Add authentication and switch to the HTTP/SSE transport for remote clients.

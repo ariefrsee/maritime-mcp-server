@@ -7,9 +7,9 @@ pipeline_state:
   started_at: 2026-09-14
   due_date: TBD
   last_updated: 2026-09-14
-  stories_total: 1
-  stories_done: 1
-  stories_open: 0
+  stories_total: 4
+  stories_done: 2
+  stories_open: 2
 ---
 
 # M01: Harden and package
@@ -36,7 +36,7 @@ What has to be true when this milestone closes. Each goal maps to at least one
 story. A goal with no story behind it is a wish, not a goal.
 
 - [x] G1: The server is an installable Python package with a declared dependency set and a pinned Python version, not a loose `src/` folder plus a one line requirements file.
-- [ ] G2: Every tool has real tests that assert behaviour, not just that the call returns without raising. The smoke test stays as the fast offline check.
+- [ ] G2 (milestone): Every tool has real tests that assert behaviour, not just that the call returns without raising. The smoke test stays as the fast offline check.
 - [ ] G3: Every tool validates its inputs and returns a clear, structured error for bad input instead of raising or returning something misleading.
 
 ## 3. Scope
@@ -60,6 +60,9 @@ Deferred deliberately. Write the reason, not just the item.
 | Story | Title | Status | Size | Priority | Branch | Plan |
 |-------|-------|--------|------|----------|--------|------|
 | S01 | Make the server an installable package | Done | M | High | `chore/S01-installable-package` | [plan](S01-installable-package/plan.md) |
+| S02 | Vessel data pipeline, offline half | Done | M | High | `feat/S02-vessel-data-pipeline` | [plan](S02-vessel-data-pipeline/plan.md) |
+| S03 | Live AIS collector | Planned, unblocked | M | High | `feat/S03-live-ais-collector` | [plan](S03-live-ais-collector/plan.md) |
+| S04 | Migrate to the mcp 2.x MCPServer API | Planned | S | Medium | `feat/S04-migrate-to-mcp-2` | [plan](S04-migrate-to-mcp-2/plan.md) |
 
 ## 5. Open risks
 
@@ -67,7 +70,8 @@ Deferred deliberately. Write the reason, not just the item.
 |------|--------|------------|-------|
 | Packaging changes break the documented Claude Desktop launch command in the README | Users following the README get a server that will not start | Update the README in the same story that changes the entry point, and verify the documented command by hand | ariefrse |
 | `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL` in the shell override repo git config silently | Commits land under an unintended identity | `commit_identity` is recorded in config.json. Verify authorship after every commit, not before | ariefrse |
-| The `mcp<2` pin is a holding position. The code is written against a superseded major version | The gap widens over time and the eventual migration gets harder | Raised in S01 retro carry forward. Strongest candidate for the next story | ariefrse |
+| The `mcp<2` pin is a holding position. The code is written against a superseded major version | The gap widens over time and the eventual migration gets harder | Deferred to S04 after the milestone was redirected toward live data | ariefrse |
+| ~~S03 is blocked on an aisstream.io API key~~ | resolved 2026-09-14 | The user supplied a key during S02 planning. It was used to capture real traffic, which corrected four errors in the S02 plan before any code was written | ariefrse |
 
 ## 6. Closing checklist
 
