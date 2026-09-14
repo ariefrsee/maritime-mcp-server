@@ -42,6 +42,17 @@ pip install .
 
 That puts a `maritime-mcp-server` command on your PATH inside the environment.
 
+## Running the tests
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+The suite needs no API key and no network. It runs against 199 real AIS messages
+captured over the Strait of Malacca and committed as a fixture, so the
+translation layer is checked against traffic that genuinely occurred.
+
 ## Verify it works (offline)
 
 ```bash

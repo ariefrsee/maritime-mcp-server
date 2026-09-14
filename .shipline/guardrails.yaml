@@ -359,3 +359,47 @@ guardrails:
       class of bug lives. Ask what the counter, cache or backoff looks like after
       the third cycle, not after the first.
 
+  - id: G17
+    status: active
+    title: Prove a test can fail before trusting that it passes
+    reason: >
+      S05 added a test asserting that the API key never reaches a log record.
+      That assertion is worthless if the code path never puts the key there in
+      the first place, and nothing about a green run distinguishes the two. The
+      same applies to the retry test written for the S03 bug: until the reset
+      line was deleted and the test watched to fail, there was no evidence it
+      covered anything. Both mutations took under a minute and both turned a
+      passing test into evidence.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: high
+    discovered_in: S05
+    discovered_on: 14/09/2026
+    injection: >
+      For any test that guards something important, a known past bug, a security
+      property, a hard won invariant, break the code on purpose once and confirm
+      that specific test fails by name. Restore it afterwards. A test that has
+      never been seen to fail is decoration. Record the mutation and its result
+      alongside the test, so the next person does not have to take it on trust.
+
+  - id: G18
+    status: active
+    title: A claim about coverage must be checkable by a script, not by reading
+    reason: >
+      S05's criterion required every public function in the mapping module to
+      have a test asserting a value. Reading the test file gave every impression
+      that was true. A short script comparing the module's public functions
+      against references in the tests found two that were exercised only
+      indirectly through a caller. The suite was green and the coverage claim was
+      false.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: medium
+    discovered_in: S05
+    discovered_on: 14/09/2026
+    injection: >
+      Never state that something is fully covered, fully migrated or fully
+      handled on the strength of having read it. Write the few lines that
+      enumerate the population and check each member, then paste what it
+      returned. Phrase the acceptance criterion so it names that check rather
+      than a feeling, because a criterion a script can evaluate is the only kind
+      that can catch you being wrong.
+
