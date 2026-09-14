@@ -43,31 +43,23 @@ No external accounts, keys or services are needed.
 
 ## 3. First time setup
 
-**Read this first.** As of 2026-09-14 this work lives on the local branch
-`chore/S01-installable-package` and has not been pushed. GitHub still has the old
-layout on `main`. Cloning from GitHub right now gets you code without a
-`pyproject.toml`, and `pip install .` will fail. Until the branch is pushed and
-merged, use the second block below.
-
-Once the work is on `main`, copy and paste, top to bottom:
+**Read this first.** As of 2026-09-14 this work lives on the branch
+`chore/S01-installable-package`, which is pushed to GitHub but not merged.
+`main` still carries the old layout with no `pyproject.toml`, so a plain clone
+followed by `pip install .` will fail. You need the extra checkout line below
+until the branch is merged.
 
 ```bash
 git clone https://github.com/Ariefrse/maritime-mcp-server.git
 cd maritime-mcp-server
-python3 -m venv .venv
-source .venv/bin/activate
-pip install .
-```
-
-Until then, from the machine that has the branch:
-
-```bash
-cd /Users/ariefrse/maritime-mcp-server
 git checkout chore/S01-installable-package
 python3 -m venv .venv
 source .venv/bin/activate
 pip install .
 ```
+
+Once the branch is merged into `main`, drop the `git checkout` line and the rest
+works unchanged.
 
 The last command should end with a line beginning `Successfully installed`,
 listing `maritime-mcp-server-0.1.0` and about twenty five other packages it
@@ -191,8 +183,9 @@ Every row here is a failure that actually occurred while building this story.
 
 ## 8. Rolling back
 
-This story is one commit on one branch. Nothing was pushed and `main` was never
-touched, so rolling back is cheap.
+This story is two commits on one branch. `main` was never touched, so rolling
+back is cheap. The branch is pushed, so a full removal means deleting it on the
+remote as well as locally.
 
 To leave the work alone and simply return to the previous state:
 
@@ -218,6 +211,7 @@ To destroy the work entirely:
 ```bash
 git checkout main
 git branch -D chore/S01-installable-package
+git push origin --delete chore/S01-installable-package
 ```
 
 To also remove the installed command from your environment:
@@ -233,11 +227,12 @@ Or simply delete the whole `.venv` directory, which is not tracked by git.
 
 Stated plainly rather than implied to be tested.
 
-- **Section 3's first block does not work yet.** It describes the state after the
-  branch is pushed and merged. Verified today only via the second block and via a
-  clone of the local repository, which succeeded: `pip install .` exited 0 and put
-  `maritime-mcp-server` on PATH. The GitHub clone path is written, not run, and
-  cannot be run until someone pushes.
+- **Section 3 was verified against a clone of the local repository, not against
+  GitHub.** The clone, checkout, venv and `pip install .` sequence succeeded:
+  exit 0, with `maritime-mcp-server` on PATH. The branch has since been pushed,
+  so the same sequence against the GitHub URL should behave identically, but it
+  was not re-run from there. The `git checkout` line is required until the branch
+  is merged into `main`.
 - **The Claude Desktop configuration in section 4 was not tested in Claude
   Desktop.** The server was verified to answer a real MCP handshake driven from
   a terminal, which exercises the same protocol, but no AI client was actually
