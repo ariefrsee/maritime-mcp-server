@@ -39,7 +39,7 @@ reach a commit, treat it as public and generate a new one.
 ## 3. First time setup
 
 ```bash
-git clone https://github.com/Ariefrse/maritime-mcp-server.git
+git clone https://github.com/ariefrsee/maritime-mcp-server.git
 cd maritime-mcp-server
 python3 -m venv .venv
 source .venv/bin/activate
