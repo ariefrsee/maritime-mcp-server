@@ -43,23 +43,16 @@ No external accounts, keys or services are needed.
 
 ## 3. First time setup
 
-**Read this first.** As of 2026-09-14 this work lives on the branch
-`chore/S01-installable-package`, which is pushed to GitHub but not merged.
-`main` still carries the old layout with no `pyproject.toml`, so a plain clone
-followed by `pip install .` will fail. You need the extra checkout line below
-until the branch is merged.
+Copy and paste, top to bottom. This is on `main` as of 2026-09-14, so a plain
+clone is all you need.
 
 ```bash
 git clone https://github.com/Ariefrse/maritime-mcp-server.git
 cd maritime-mcp-server
-git checkout chore/S01-installable-package
 python3 -m venv .venv
 source .venv/bin/activate
 pip install .
 ```
-
-Once the branch is merged into `main`, drop the `git checkout` line and the rest
-works unchanged.
 
 The last command should end with a line beginning `Successfully installed`,
 listing `maritime-mcp-server-0.1.0` and about twenty five other packages it
@@ -183,33 +176,36 @@ Every row here is a failure that actually occurred while building this story.
 
 ## 8. Rolling back
 
-This story is two commits on one branch. `main` was never touched, so rolling
-back is cheap. The branch is pushed, so a full removal means deleting it on the
-remote as well as locally.
+This story is three commits, merged into `main` as `5e58a2d` with a merge commit,
+and pushed. Rolling back now means reverting a merge on a published branch, which
+is more involved than dropping a local branch.
 
-To leave the work alone and simply return to the previous state:
+To inspect the previous state without changing anything:
 
 ```bash
 cd maritime-mcp-server
-git checkout main
+git checkout 92491bd
 ```
 
-`main` still has the original `src/` layout and the old `README.md`. Note that
-the old layout has the dependency problem described in section 6 row one, so a
-fresh install from `main` will not work without pinning `mcp<2` by hand.
+That is the last commit before this story. Note it has the dependency problem in
+section 6 row one, so a fresh install from there will not work without pinning
+`mcp<2` by hand. Return with `git checkout main`.
 
-To undo the commit but keep the changes as uncommitted edits, so you can adjust
-and recommit:
-
-```bash
-git checkout chore/S01-installable-package
-git reset --soft HEAD~1
-```
-
-To destroy the work entirely:
+To undo the merge on `main` and publish the undo:
 
 ```bash
 git checkout main
+git revert -m 1 5e58a2d
+git push origin main
+```
+
+`-m 1` tells git which side of the merge to keep, in this case the state of
+`main` before the story. This adds a new commit rather than rewriting history,
+which is the safe option on a branch other people may have pulled.
+
+To remove the story branch as well, once you are sure:
+
+```bash
 git branch -D chore/S01-installable-package
 git push origin --delete chore/S01-installable-package
 ```
@@ -227,12 +223,11 @@ Or simply delete the whole `.venv` directory, which is not tracked by git.
 
 Stated plainly rather than implied to be tested.
 
-- **Section 3 was verified against a clone of the local repository, not against
-  GitHub.** The clone, checkout, venv and `pip install .` sequence succeeded:
-  exit 0, with `maritime-mcp-server` on PATH. The branch has since been pushed,
-  so the same sequence against the GitHub URL should behave identically, but it
-  was not re-run from there. The `git checkout` line is required until the branch
-  is merged into `main`.
+- **Section 3 was verified against a clone of the local repository on `main`,
+  not against the GitHub URL.** The clone, venv and `pip install .` sequence
+  succeeded: exit 0, `mcp` 1.30.0, and `vessel_details` returned the right MMSI
+  when run from `/`. The work is now merged and pushed, so the same sequence
+  against GitHub should behave identically, but it was not re-run from there.
 - **The Claude Desktop configuration in section 4 was not tested in Claude
   Desktop.** The server was verified to answer a real MCP handshake driven from
   a terminal, which exercises the same protocol, but no AI client was actually
