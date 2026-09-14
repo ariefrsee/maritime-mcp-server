@@ -49,13 +49,12 @@ key**. That was the point of splitting this story from the live half.
 ```bash
 git clone https://github.com/Ariefrse/maritime-mcp-server.git
 cd maritime-mcp-server
-git checkout feat/S02-vessel-data-pipeline
 python3 -m venv .venv
 source .venv/bin/activate
 pip install .
 ```
 
-The `git checkout` line is needed until this branch is merged into `main`.
+This is on `main` as of 2026-09-14, so a plain clone is all you need.
 
 ## 4. Run it
 
@@ -143,33 +142,30 @@ Every row is a failure that actually occurred while building this story.
 
 ## 8. Rolling back
 
-This story is one commit on `feat/S02-vessel-data-pipeline`. `main` was never
-touched, so rolling back is cheap.
+This story is one commit, merged into `main` as `eab8d83` and pushed. Rolling
+back means reverting a merge on a published branch.
 
-To return to the previous state, which is S01 as merged:
+To inspect the previous state without changing anything:
 
 ```bash
-git checkout main
+git checkout 4f3291e
 ```
+
+That is S01 as merged, before any of this. Return with `git checkout main`.
 
 `main` still works fully. It has the original bare list output shape and the 18
 vessel snapshot, with no provenance block.
 
-To undo the commit but keep the changes as uncommitted edits:
-
-```bash
-git checkout feat/S02-vessel-data-pipeline
-git reset --soft HEAD~1
-```
-
-To discard the branch entirely:
+To undo the merge on `main` and publish the undo:
 
 ```bash
 git checkout main
-git branch -D feat/S02-vessel-data-pipeline
+git revert -m 1 eab8d83
+git push origin main
 ```
 
-If the branch has been pushed, also `git push origin --delete feat/S02-vessel-data-pipeline`.
+`-m 1` keeps the state of `main` before the story. This adds a new commit rather
+than rewriting history, which is the safe option on a published branch.
 
 **One thing rolling back does not undo.** If you have already pointed an AI
 client at this version and written anything that reads the `data` block, going
@@ -180,10 +176,12 @@ repository consumes these tools today, so this is theoretical for now.
 
 Stated plainly rather than implied to be tested.
 
-- **Section 3 was verified against the local repository, not against GitHub.**
-  The branch is not pushed at the time of writing, so `git clone` from the URL
-  followed by `git checkout` could not be run end to end. The install itself,
-  from a clean wheel in a venv created outside the repository, was verified.
+- **Section 3 was verified against a clone of the local repository, not against
+  the GitHub URL.** The install itself, from a clean wheel in a venv created
+  outside the repository, was verified: `pip install .` exited 0 and the mapping
+  resolved its data file from `site-packages`. The work is now merged and pushed,
+  so the same sequence against GitHub should behave identically, but it was not
+  re-run from there.
 - **The rollback commands in section 8 were not executed**, because doing so
   would have destroyed the story. The branch and commit they name are real.
 - **Section 4 was verified only to the point of the server starting and exiting
