@@ -31,7 +31,7 @@ here. `ship-init` writes only the lines that apply to this project.
 - No emoji anywhere, in code, documents or commit messages.
 - No dash punctuation inside sentences, in any copy.
 - Never put assistant attribution in a commit. No `Co-Authored-By`, no session trailers, no generated-with footer.
-- Commit as `Ariefrse <merchgpt@gmail.com>`. Set it repo-locally and verify with `git log -1 --format='%an <%ae> / %cn <%ce>'` after committing, because environment variables can override git config silently.
+- Commit as `ariefrsee <193463370+ariefrsee@users.noreply.github.com>`. Set it repo-locally and verify with `git log -1 --format='%an <%ae> / %cn <%ce>'` after committing, because environment variables can override git config silently. This shell exports `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL`, which beat both git config and `git -c`, so they must be overridden in the command environment.
 - One branch per story, named with the story id.
 
 ### Before implementing anything
