@@ -9,6 +9,7 @@ description = "Model Context Protocol server exposing maritime vessel data as MC
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Ariefrse" }]
 keywords = ["mcp", "model-context-protocol", "maritime", "ais", "vessels"]
 classifiers = [
