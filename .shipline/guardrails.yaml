@@ -1,0 +1,29 @@
+# Shipline guardrails
+#
+# Every entry here came out of a retrospective. A guardrail is a rule that would
+# have prevented a real mistake that already happened in this project.
+#
+# The `injection` block is what gets loaded into context before planning and
+# before building. Write it as a direct instruction to the assistant, not as a
+# description of the incident.
+#
+# Never delete a guardrail. Mark it `status: retired` with a reason if the
+# underlying condition genuinely no longer exists.
+
+version: 1
+project: maritime-mcp-server
+guardrails: []
+
+# Template for a new entry:
+#
+#  - id: G1
+#    status: active
+#    title: One line, states the rule not the incident
+#    reason: Why this bit. What actually broke and what it cost.
+#    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+#    severity: critical
+#    discovered_in: S01
+#    discovered_on: DD/MM/YYYY
+#    injection: >
+#      Direct instruction. Imperative voice. Specific enough to act on without
+#      reading the retro it came from.

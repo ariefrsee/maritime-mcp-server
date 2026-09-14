@@ -7,7 +7,7 @@ surface used by the companion `maritime-vessel-agent` project, published here as
 a reusable MCP server.
 
 Run:
-    python -m src.server          # stdio transport (for MCP clients)
+    python -m maritime_mcp_server.server    # stdio transport (for MCP clients)
 
 Wire into Claude Desktop by adding this server to claude_desktop_config.json —
 see the README.
@@ -18,11 +18,11 @@ from __future__ import annotations
 import json
 import math
 from functools import lru_cache
-from pathlib import Path
+from importlib.resources import files
 
 from mcp.server.fastmcp import FastMCP
 
-DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "vessels.json"
+DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
 PORT_COORDS = {
     "port klang": (3.00, 101.36),
@@ -37,8 +37,7 @@ mcp = FastMCP("maritime-vessel-data")
 
 @lru_cache(maxsize=1)
 def _load_vessels() -> list[dict]:
-    with open(DATA_FILE, encoding="utf-8") as fh:
-        return json.load(fh)
+    return json.loads(DATA_FILE.read_text(encoding="utf-8"))
 
 
 def _haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
