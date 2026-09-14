@@ -274,3 +274,88 @@ guardrails:
       one line at the top rather than threading branch names through the
       instructions, so exactly one line needs changing later.
 
+  - id: G13
+    status: active
+    title: Never log an exception's message where a secret could be in scope
+    reason: >
+      The AIS collector authenticates by sending its API key in the first
+      websocket frame. The natural error line, log.warning("failed: %s", exc),
+      would print whatever the library put in that exception, and a handshake
+      failure can echo the request. The key would land in the log, which is
+      exactly the text people paste when asking for help.
+    applies_to: [backend, infrastructure, ops]
+    severity: critical
+    discovered_in: S03
+    discovered_on: 14/09/2026
+    injection: >
+      In any code path where a credential, token or key is in scope, log the
+      exception type and your own context, never the exception's message or
+      repr, and never the request. Write log.warning("connect failed (%s)",
+      type(exc).__name__) rather than interpolating the exception. Verify by
+      running the real failure path and searching the captured output for the
+      secret, rather than assuming the library is careful.
+
+  - id: G14
+    status: active
+    title: Treat a clean disconnect as a failure for retry purposes
+    reason: >
+      The obvious retry loop treats a session returning normally as success and
+      reconnects at once. A server that accepts a connection and immediately
+      closes it, which is what a rejected or rate limited credential looks like,
+      returns normally. The result is an instant infinite reconnect loop against
+      a free service with no SLA, while the code looks healthy.
+    applies_to: [backend, infrastructure]
+    severity: high
+    discovered_in: S03
+    discovered_on: 14/09/2026
+    injection: >
+      In a reconnect loop, success means the connection delivered something, not
+      that it closed without raising. Have the session report whether it did any
+      real work, treat a clean but empty session as a failure for backoff
+      purposes, and cap consecutive failures so a persistently unhappy endpoint
+      is abandoned rather than hammered.
+
+  - id: G15
+    status: active
+    title: Say when a criterion was verified once against conditions that vary
+    reason: >
+      S03's vessel count and movement criteria were each checked one time,
+      against real shipping traffic on one afternoon. The Strait of Malacca is
+      busy at midday and far quieter at 0300, so a threshold of fifty vessels in
+      five minutes could fail at night with the code entirely healthy, and
+      nothing in the story would distinguish that from a regression.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: medium
+    discovered_in: S03
+    discovered_on: 14/09/2026
+    injection: >
+      When a criterion depends on conditions outside your control, live traffic,
+      time of day, third party load, record the conditions you observed and state
+      that it was checked once. Do not present a single favourable run as a
+      stable property. Where a threshold is involved, note what would make it
+      fail for reasons unrelated to the code.
+
+  - id: G16
+    status: active
+    title: Test the mixed case, not only total success and total failure
+    reason: >
+      S03's collector counted failures for the life of the process and never
+      reset them after a healthy session, so a long running server would
+      eventually stop collecting and silently serve stale fallback data. Seven
+      acceptance criteria and eight test cases all passed over it, because every
+      one exercised either an endpoint that never connects or one that never
+      drops. The bug lived only in the alternating case, which is what real
+      operation actually looks like. It was found by reading the code while
+      writing the retro.
+    applies_to: [backend, infrastructure, ops]
+    severity: high
+    discovered_in: S03
+    discovered_on: 14/09/2026
+    injection: >
+      For any component with retry, caching, reconnection, rate limiting or
+      accumulated state, test the alternating case explicitly: works, then fails,
+      then works again. Testing only the all-good and all-bad paths leaves state
+      that accumulates across cycles completely uncovered, and that is where this
+      class of bug lives. Ask what the counter, cache or backoff looks like after
+      the third cycle, not after the first.
+

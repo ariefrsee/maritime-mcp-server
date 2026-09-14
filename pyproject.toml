@@ -7,7 +7,7 @@ name = "maritime-mcp-server"
 version = "0.1.0"
 description = "Model Context Protocol server exposing maritime vessel data as MCP tools and a resource"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Ariefrse" }]
 keywords = ["mcp", "model-context-protocol", "maritime", "ais", "vessels"]
@@ -16,9 +16,12 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 
-# Upper bound is deliberate. mcp 2.x renamed FastMCP to MCPServer and moved
-# mcp.server.fastmcp, which this code imports. See divergence D-1 in the S01 plan.
-dependencies = ["mcp>=1.2.0,<2"]
+# Upper bounds are deliberate, per guardrail G1.
+#   mcp: 2.x renamed FastMCP to MCPServer and moved mcp.server.fastmcp, which
+#        this code imports. See divergence D-1 in the S01 plan.
+#   websockets: 17.x is current and requires Python 3.11, which is why the
+#        requires-python floor above was raised from 3.10 in S03.
+dependencies = ["mcp>=1.2.0,<2", "websockets>=17,<18"]
 
 [project.urls]
 Homepage = "https://github.com/Ariefrse/maritime-mcp-server"

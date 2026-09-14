@@ -8,8 +8,8 @@ pipeline_state:
   due_date: TBD
   last_updated: 2026-09-14
   stories_total: 4
-  stories_done: 2
-  stories_open: 2
+  stories_done: 3
+  stories_open: 1
 ---
 
 # M01: Harden and package
@@ -61,7 +61,7 @@ Deferred deliberately. Write the reason, not just the item.
 |-------|-------|--------|------|----------|--------|------|
 | S01 | Make the server an installable package | Done | M | High | `chore/S01-installable-package` | [plan](S01-installable-package/plan.md) |
 | S02 | Vessel data pipeline, offline half | Done | M | High | `feat/S02-vessel-data-pipeline` | [plan](S02-vessel-data-pipeline/plan.md) |
-| S03 | Live AIS collector | Planned, unblocked | M | High | `feat/S03-live-ais-collector` | [plan](S03-live-ais-collector/plan.md) |
+| S03 | Live AIS collector | Done | M | High | `feat/S03-live-ais-collector` | [plan](S03-live-ais-collector/plan.md) |
 | S04 | Migrate to the mcp 2.x MCPServer API | Planned | S | Medium | `feat/S04-migrate-to-mcp-2` | [plan](S04-migrate-to-mcp-2/plan.md) |
 
 ## 5. Open risks
