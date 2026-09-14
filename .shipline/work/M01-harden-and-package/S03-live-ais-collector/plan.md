@@ -3,9 +3,9 @@ pipeline_state:
   story_id: S03
   milestone: M01
   title: Live AIS collector
-  current_phase: plan      # plan | build | verify | test | retro | deliver | done
-  phases_completed: []
-  approved_by_user: false
+  current_phase: done      # plan | build | verify | test | retro | deliver | done
+  phases_completed: [plan, build, verify, test, retro, runbook, deliver]
+  approved_by_user: true
   branch: feat/S03-live-ais-collector
   started_at: 2026-09-14
   last_updated: 2026-09-14
@@ -113,13 +113,49 @@ Every criterion here needs the API key.
 
 | ID | Criterion | Met |
 |----|-----------|-----|
-| AC-1 | With a key set, the store holds more than 50 vessels within five minutes, none of which are from the bundled 18. **Measured during S02 planning: 99 unique vessels in 300 seconds, 93 named** | [ ] |
-| AC-2 | `vessels_near_port("Port Klang")` returns vessels whose positions differ between two calls several minutes apart, proving the data is moving | [ ] |
-| AC-3 | Killing the network mid session causes the collector to back off and retry rather than crash, and the tools fall back to the snapshot with `source: snapshot` | [ ] |
-| AC-4 | The API key never appears in any log line, tool output, committed file or error message. Verified by grepping the repository and all captured output | [ ] |
-| AC-5 | `pyproject.toml` declares `websockets` with an upper bound at the next major version, and a wheel installed in a clean environment outside the repository pulls it | [ ] |
-| AC-6 | Messages carrying `Valid: false` are not ingested, verified by feeding one through the collector's handler | [ ] |
-| AC-7 | The server still starts, answers and falls back correctly when the key is absent, so snapshot mode is not regressed | [ ] |
+| AC-1 | With a key set, the store holds more than 50 vessels within five minutes, none of which are from the bundled 18 | [x] |
+| AC-2 | `vessels_near_port("Port Klang")` returns vessels whose positions differ between two calls several minutes apart | [x] |
+| AC-3 | Killing the network mid session causes the collector to back off and retry rather than crash, and the tools fall back to the snapshot | [x] |
+| AC-4 | The API key never appears in any log line, tool output, committed file or error message | [x] |
+| AC-5 | `pyproject.toml` declares `websockets` with an upper bound, and a wheel installed in a clean environment outside the repository pulls it | [x] |
+| AC-6 | Messages carrying `Valid: false` are not ingested | [x] |
+| AC-7 | The server still starts, answers and falls back correctly when the key is absent | [x] |
+
+### Evidence
+
+All of the below came from driving the real server over stdio as a client would,
+not from calling functions directly.
+
+- **AC-1.** 63 vessels after five minutes of collection, against a threshold of
+  50. None are from the bundled 18: the snapshot holds names like Bunga Mas Lima
+  and Seri Alam, while live returns SEA SERENITY, ORKIM RELIANCE and
+  ZHONG CHUAN 701.
+- **AC-2.** Two samples 180 seconds apart. 35 vessels present in both, of which
+  **15 had changed position**, moving 0.35 to 0.71 nautical miles, which is
+  consistent with 7 to 14 knots. 28 vessels were new in the second sample, and
+  3 gained their type and size during the gap, for example SOUTHERN RESPECT
+  resolving to a 244m tanker bound for SG PEBGC.
+- **AC-3.** Tested against an unroutable endpoint rather than by abusing the
+  live service. Four `ConnectionRefusedError` retries with growing backoff, then
+  `Giving up on live AIS after 4 consecutive failures`, after which
+  `search_vessels` returned `source: snapshot` with 18 vessels. The collector
+  logs the exception **type**, never its message, because a websocket handshake
+  error can echo the request URL and the key rides in the subscription frame.
+- **AC-4.** Checked programmatically across every captured stderr line and the
+  full JSON of both tool responses: `API key present in any stderr line: False`,
+  `API key present in tool output: False`. A repository-wide grep for the key
+  returns nothing.
+- **AC-5.** Wheel metadata reads `Requires-Dist: websockets<18,>=17` and
+  `Requires-Python: >=3.11`. Installed into a venv created outside the
+  repository that had never held `websockets`, it pulled 17.1, and the collector
+  imported and correctly declined to start without a key.
+- **AC-6.** A `PositionReport` with `Valid: false` returned `False` from
+  `handle()` and left the store at one vessel rather than two. `handle()` was
+  also fed malformed JSON, an empty string, `{}`, `[]`, `null`, `None`, an
+  integer and a `SubscriptionConfirmation`; all returned `False` and none raised.
+- **AC-7.** With the variable unset the server logged exactly one line,
+  `AISSTREAM_API_KEY is not set, so live AIS is off`, and answered from the
+  snapshot with correct provenance.
 
 ## 7. Files to create or modify
 
@@ -172,4 +208,87 @@ grep -rn "$AISSTREAM_API_KEY" . --exclude-dir=.git   # expect no matches
 python -m build --wheel && pip install dist/*.whl    # in a clean env outside the repo
 ```
 
-**Result:** not yet run.
+**Result:** run on 2026-09-14. All seven criteria met, verified against the real
+service over the real protocol.
+
+## 11. Divergence log
+
+### D-1: the websocket client forces a Python floor change
+
+**When:** preflight, before any code.
+
+**What happened:** `websockets` 17.1, the current release, declares
+`Requires-Python: >=3.11`. This project declared `>=3.10`. Separately,
+`asyncio.timeout`, which the read loop wants, also arrived in 3.11.
+
+**Options considered:** raise the floor to 3.11 and take `websockets` 17;
+stay at 3.10 with `websockets>=16.1,<17` and use `asyncio.wait_for`; or widen to
+`>=16.1,<18` and support both, which means two resolution paths and no test
+suite to cover either.
+
+**Raised at a gate rather than decided in the build, per G9,** since narrowing
+`requires-python` changes what the package promises. The user chose to raise the
+floor. Python 3.10 reaches end of security support in October 2026, about a
+month from this story.
+
+**Effect:** `requires-python = ">=3.11"`, `websockets>=17,<18`.
+
+### D-2: a clean websocket close counts as a failure for backoff
+
+**When:** step 1, writing the retry loop.
+
+**What happened:** the obvious loop treats a returning `_session()` as success
+and reconnects immediately. A server that accepts a connection and closes it at
+once, which is what a rejected key looks like, then becomes a hot loop against a
+free service.
+
+**Fix:** a clean return increments the failure counter exactly as an exception
+does. Only inbound messages represent success. Combined with
+`MAX_CONSECUTIVE_FAILURES`, a persistently unhappy endpoint is abandoned rather
+than hammered.
+
+### D-3: a vessel can report its type and still have no length
+
+**When:** verification, reading the AC-2 output.
+
+**What happened:** MARQUIS DE PRIE gained `type: Cargo` and a destination in the
+gap between samples, but `length_m` stayed null, which initially read as a merge
+bug.
+
+**Why it is correct:** `ShipStaticData` carries both `Type` and `Dimension`, but
+that vessel transmitted zero hull dimensions. `length_from_dimension` returns
+`None` for a zero total rather than reporting a 0 metre ship. Guardrail G8 in
+action: an absent value stays absent instead of becoming a plausible number.
+
+**No change made.** Recorded because it looks like a defect and is not.
+
+### D-4: the retry policy passed every test and was still wrong
+
+**When:** while writing the retro, after all seven criteria had been met.
+
+**What happened:** `failures` counted upward for the life of the process and was
+never reset. A session that connected and delivered thousands of messages left
+the counter exactly where it was. After eight failures accumulated across hours
+of otherwise healthy operation, the collector would give up permanently and the
+server would serve the snapshot with no further logging.
+
+**Why no test caught it:** TC4 exercised total failure, an endpoint that never
+connects. TC2, TC3 and TC8 exercised total success, a connection that never
+drops. Real operation is neither. Nothing in the story tested a session that
+works, then fails, then works again, which is the only shape in which the bug
+appears.
+
+**Fix:** `_session()` now reports whether it actually delivered any messages. A
+productive session resets both the counter and the backoff delay. A clean close
+that delivered nothing still counts as a failure, preserving the D-2 protection
+against hot looping.
+
+**Re-verified after the change**, because the change altered retry semantics:
+
+```
+unroutable endpoint : 4 retries, gives up, falls back to snapshot
+mixed case          : 3 fails, 1 productive session, 4 more fails = 8 attempts
+                      without the reset it would have stopped at 4
+live path           : reconnected, 28 vessels near Tanjung Pelepas, ALS CERES
+                      moored at 16.1nm with its correct 255m length
+```

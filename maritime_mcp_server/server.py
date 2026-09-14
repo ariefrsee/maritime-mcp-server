@@ -20,7 +20,12 @@ import math
 from functools import lru_cache
 from importlib.resources import files
 
+from contextlib import asynccontextmanager
+
 from mcp.server.fastmcp import FastMCP
+
+from .collector import Collector
+from .store import VesselStore
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
@@ -32,7 +37,26 @@ PORT_COORDS = {
     "langkawi": (6.32, 99.85),
 }
 
-mcp = FastMCP("maritime-vessel-data")
+@asynccontextmanager
+async def _lifespan(_server):
+    """Run the AIS collector for as long as the server is up.
+
+    Without an API key the collector declines to start and the server answers
+    from its bundled snapshot, which is a supported mode rather than a failure.
+    """
+    store = VesselStore()
+    collector = Collector(store)
+    started = collector.start()
+    if started:
+        set_store(store)
+    try:
+        yield {"store": store, "collector": collector}
+    finally:
+        await collector.stop()
+        set_store(None)
+
+
+mcp = FastMCP("maritime-vessel-data", lifespan=_lifespan)
 
 
 SNAPSHOT_DATE = "2026-07-20"
