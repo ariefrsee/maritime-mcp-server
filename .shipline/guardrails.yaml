@@ -252,3 +252,25 @@ guardrails:
       asserts its value, not merely its presence. If a plan states a field is
       derived or computed, name the expected result for a concrete input.
 
+  - id: G12
+    status: active
+    title: Write runbooks against the state after merging, not the branch you are on
+    reason: >
+      S01's runbook needed correcting twice and S02's once, always for the same
+      reason: the setup and rollback sections described the branch state at the
+      moment of writing. A checkout line that is correct on a feature branch is
+      wrong the instant it merges, and rollback instructions that say delete the
+      local branch are wrong once the work is published. Three corrective commits
+      across two stories, all avoidable.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: medium
+    discovered_in: S02
+    discovered_on: 14/09/2026
+    injection: >
+      Write a runbook for the state the work will be in once it is merged and
+      published, because that is when people read it. Setup is a plain clone of
+      the default branch. Rollback reverts a published merge commit rather than
+      deleting a local branch. If the work genuinely is not merged yet, say so in
+      one line at the top rather than threading branch names through the
+      instructions, so exactly one line needs changing later.
+
