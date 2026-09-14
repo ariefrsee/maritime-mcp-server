@@ -141,3 +141,114 @@ guardrails:
 #    injection: >
 #      Direct instruction. Imperative voice. Specific enough to act on without
 #      reading the retro it came from.
+
+  - id: G7
+    status: active
+    title: Capture real data from an external source before planning against it
+    reason: >
+      The S02 plan was written from aisstream.io's published type definitions.
+      Four of its premises were wrong: ship names arrive in a MetaData envelope
+      on every message rather than only in ShipStaticData, a fourth message type
+      exists that carries no navigational status, the field named Timestamp is a
+      second of the minute rather than a clock, and every string is space padded.
+      The plan's own risk table named this danger and then proposed mitigating it
+      with a sample taken from the same documentation, which would have
+      reproduced all four errors.
+    applies_to: [backend, infrastructure]
+    severity: critical
+    discovered_in: S02
+    discovered_on: 14/09/2026
+    injection: >
+      Before planning any integration with an external feed, API or file format,
+      obtain a real sample and inspect it. A published schema describes what
+      fields can exist, not which ones actually arrive, how often, in what
+      envelope, or in what state. If credentials are needed to get a sample, ask
+      for them before writing the plan rather than planning around their absence.
+      Commit the captured sample as a fixture so later changes are checked
+      against reality rather than against the documentation again.
+
+  - id: G8
+    status: active
+    title: Never present externally sourced data in a field the source did not supply
+    reason: >
+      AIS does not transmit flag state, vessel length or nearest port, yet the
+      tools report all three. Flag is derived from MMSI digits, length from hull
+      dimensions, nearest port computed locally. Separately, the feed carries
+      aids to navigation and malformed identifiers alongside ships, and the store
+      was listing a navigation buoy as a vessel. Data that looks right and is
+      wrong is worse than an obvious gap, because nobody checks it.
+    applies_to: [backend, content]
+    severity: high
+    discovered_in: S02
+    discovered_on: 14/09/2026
+    injection: >
+      When mapping external data into your own shape, keep track of which fields
+      the source actually supplies and which you derive. A value the source did
+      not send is either null or explicitly marked as derived, never a plausible
+      default. An unrecognised code is reported as itself, for example "Unknown
+      status 12", never mapped to the nearest known value. Check that the records
+      you return are the kind of thing the caller asked for: a feed of vessels
+      may contain objects that are not vessels.
+
+  - id: G9
+    status: active
+    title: A change to an output contract is a gate decision, not a build decision
+    reason: >
+      S02 changed every tool's response from a bare list to an envelope in order
+      to carry provenance. This was the right design, but S01 had explicitly
+      pinned byte identical output as an acceptance criterion, and the user
+      learned the guarantee had been broken from a build report rather than being
+      asked. The cost happened to be zero because nothing external consumes these
+      tools yet.
+    applies_to: [backend, frontend, mobile, content, ops]
+    severity: medium
+    discovered_in: S02
+    discovered_on: 14/09/2026
+    injection: >
+      If a change alters the shape of anything a caller consumes, a response
+      body, a file format, a CLI output, stop and raise it with the user before
+      building it, even when the change is clearly an improvement and even when
+      nothing currently consumes it. Say what breaks, what depends on it today,
+      and what the alternative would cost.
+
+  - id: G10
+    status: active
+    title: Investigate small gaps in coverage rather than accepting them as rounding
+    reason: >
+      Ninety of ninety two vessels resolved a flag. The two that did not looked
+      like noise and were in fact an entire category of object the server was
+      mislabelling: an aid to navigation whose country digits sit in the middle
+      of its MMSI, and a malformed identifier. Treating the gap as acceptable
+      would have shipped a tool that reports buoys as ships.
+    applies_to: [backend, infrastructure, ops]
+    severity: medium
+    discovered_in: S02
+    discovered_on: 14/09/2026
+    injection: >
+      When a result covers most but not all of a dataset, examine the exceptions
+      by name before accepting the number. A handful of failures is usually a
+      category you have not modelled, not noise. State what each exception was
+      and why it is acceptable, or fix it.
+
+  - id: G11
+    status: active
+    title: A criterion that checks shape must not stand in for one that checks behaviour
+    reason: >
+      S02's plan promised that nearest_port would be computed from the project's
+      port list. No implementation step covered it. AC-2 required that a mapped
+      record carry the same nine keys as the bundled snapshot, and it did, with
+      nearest_port present and permanently null. The criterion passed, the story
+      was marked done, and the gap surfaced only when the user asked to see a
+      real vessel end to end.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: high
+    discovered_in: S02
+    discovered_on: 14/09/2026
+    injection: >
+      When writing acceptance criteria, check that each one would fail if the
+      behaviour were absent. A criterion asserting that a key exists, that a file
+      is present, or that a call returns without error does not prove the thing
+      works. For every field or output a plan promises, write a criterion that
+      asserts its value, not merely its presence. If a plan states a field is
+      derived or computed, name the expected result for a concrete input.
+
