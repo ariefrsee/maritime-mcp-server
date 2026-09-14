@@ -1,37 +1,42 @@
-# Maritime Vessel Data — MCP Server
+# Maritime Vessel Data MCP Server
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that
-exposes maritime vessel data as standard MCP **tools** and a **resource**. Any
-MCP-compatible client — Claude Desktop, an agent framework, an IDE extension —
-can query live vessel data through the protocol instead of a bespoke integration.
+Ask an AI assistant *"which tankers are anchored near Port Klang?"* and get a
+real answer, from ships that are broadcasting their positions right now.
 
-Built with Python and the official [`mcp`](https://pypi.org/project/mcp/) SDK
-(FastMCP). MIT licensed. Requires Python 3.11 or newer. It is the same tool surface used by the companion
-[maritime-vessel-agent](https://github.com/Ariefrse/maritime-vessel-agent)
-project, published here as a reusable, protocol-standard server.
+This is a [Model Context Protocol](https://modelcontextprotocol.io/) server. It
+listens to live AIS radio traffic over Malaysian waters and exposes it as
+standard MCP tools, so any MCP compatible client can ask about vessels without a
+bespoke integration.
 
-## What it demonstrates
+MIT licensed. Python 3.11 or newer. No account needed to try it, and a free API
+key to run it live.
 
-| Capability | Where |
-|---|---|
-| Model Context Protocol (MCP) | `src/server.py` — a FastMCP server over stdio |
-| Tool design | `search_vessels`, `vessels_near_port`, `vessel_details` |
-| MCP resources | `vessels://all` exposes the dataset as a readable resource |
-| Interoperability | works with any MCP client — no client-specific code |
+A real response, abbreviated:
+
+```
+vessels_near_port("Tanjung Pelepas", 40)
+
+{ "data": { "source": "live", "vessel_count": 63, "oldest_position_age_seconds": 140 },
+  "matches": 27,
+  "vessels": [
+    { "mmsi": "563186500", "name": "ALS CERES", "type": "Cargo", "flag": "Singapore",
+      "length_m": 255, "status": "Moored", "destination": "MYTTP",
+      "lat": 1.2612, "lon": 103.7895, "distance_nm": 16.1 } ]}
+```
 
 ## Tools
 
-| Tool | Purpose |
-|---|---|
-| `search_vessels(vessel_type, flag, status)` | filter the fleet by type / flag / navigational status |
-| `vessels_near_port(port, radius_nm)` | vessels within a radius of a named port, distance-annotated |
-| `vessel_details(query)` | look up one vessel by MMSI or name |
+| Tool | What it answers |
+|------|-----------------|
+| `search_vessels(vessel_type, flag, status)` | which ships match a type, flag state or navigational status |
+| `vessels_near_port(port, radius_nm)` | what is within a radius of a named port, nearest first |
+| `vessel_details(query)` | everything known about one ship, by MMSI or name |
 
-Resource `vessels://all` returns the full dataset.
+Resource `vessels://all` returns the whole current picture.
 
-## Setup
+Ports: Port Klang, Tanjung Pelepas, Penang, Malacca, Langkawi.
 
-Requires Python 3.11 or newer.
+## Quick start
 
 ```bash
 git clone https://github.com/ariefrsee/maritime-mcp-server.git
@@ -41,70 +46,40 @@ pip install .
 ```
 
 That puts a `maritime-mcp-server` command on your PATH inside the environment.
-
-## Running the tests
-
-```bash
-pip install -e ".[dev]"
-pytest
-```
-
-The suite needs no API key and no network. It runs against 199 real AIS messages
-captured over the Strait of Malacca and committed as a fixture, so the
-translation layer is checked against traffic that genuinely occurred.
-
-## Verify it works (offline)
+Check it works without touching the network:
 
 ```bash
 python -m maritime_mcp_server.smoke_test
 ```
 
-This exercises every tool without needing an MCP client.
+It should end with `All smoke checks passed.`
 
-## Run the server
+## Going live
 
-```bash
-maritime-mcp-server        # serves over stdio (how MCP clients launch it)
-```
-
-The dataset ships inside the package, so the server runs correctly from any
-working directory.
-
-## Use it from Claude Desktop
-
-Add the server to your `claude_desktop_config.json`
-(`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "maritime-vessel-data": {
-      "command": "/absolute/path/to/.venv/bin/maritime-mcp-server"
-    }
-  }
-}
-```
-
-No `args` and no `cwd` are needed. If the environment is on your PATH already,
-`"command": "maritime-mcp-server"` is enough.
-
-Restart Claude Desktop, then ask it questions like *"Which tankers are at anchor
-near Port Klang?"* — it will call the server's tools directly.
-
-## Live AIS
-
-The server answers from a bundled 18 vessel sample until you give it an API key.
-With one, it holds a websocket to [aisstream.io](https://aisstream.io) for as
-long as it is running and answers from real vessel traffic instead.
-
-Get a free key from aisstream.io, then:
+Without an API key the server answers from a bundled sample of 18 vessels and
+says so. Get a free key from [aisstream.io](https://aisstream.io), then:
 
 ```bash
 export AISSTREAM_API_KEY=your-key-here
 maritime-mcp-server
 ```
 
-For an MCP client, put it in the server's environment:
+You should see one line, `AIS stream connected`, and then silence. That is
+correct: an MCP server over stdio prints no banner and waits for a client.
+
+**Give it a minute before asking anything.** AIS is a stream, not a database.
+The server learns about a ship only when that ship transmits, so it starts
+knowing nothing and fills up over the following minutes. During testing it held
+0 vessels at 3 seconds, 40 at 150 seconds and 63 at five minutes. There is no
+backfill to request; the feed does not replay what you missed.
+
+Coverage is Malaysian waters, roughly 0.5N to 7.5N and 98.5E to 105.5E, which
+spans the Strait of Malacca and both coasts of the peninsula.
+
+## Use it from Claude Desktop
+
+Add the server to `claude_desktop_config.json`. On macOS that lives at
+`~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -117,50 +92,71 @@ For an MCP client, put it in the server's environment:
 }
 ```
 
-Without the variable the server still starts, logs one line saying live AIS is
-off, and serves the snapshot. That is a supported mode, not a failure.
+Run `pwd` in the project directory to get the absolute path. Restart Claude
+Desktop fully, then ask it something like *"which vessels are near Tanjung
+Pelepas right now?"* and it will call these tools for you.
 
-**What live mode does not promise.** AIS is a stream, not a database. The server
-learns about a vessel only when that vessel transmits, so it starts knowing
-nothing and fills up over the following minutes. Ask it a question ten seconds
-after launch and you will get very little. Ships broadcast their position every
-few seconds and their identity roughly once in ten of those, so a vessel often
-has a position long before it has a name, type or size. Entries are forgotten
-after 30 minutes without a transmission, because a ship that stopped reporting
-is not still there.
-
-Coverage is Malaysian waters: the Strait of Malacca and both coasts of the
-peninsula, roughly 0.5&deg;N to 7.5&deg;N and 98.5&deg;E to 105.5&deg;E.
+Exporting the variable in your terminal does not reach a client launched
+process, so it has to go in the `env` block.
 
 ## Where the data comes from
 
-Every tool response opens with a `data` block saying where its answer came from.
+Every response opens with a `data` block naming its source.
 
 ```json
-{
-  "data": { "source": "snapshot", "vessel_count": 18, "snapshot_date": "2026-07-20",
-            "note": "Live AIS is unavailable, so this is the bundled sample dataset." },
-  "matches": 1,
-  "vessels": [ ... ]
-}
+"data": { "source": "snapshot", "vessel_count": 18, "snapshot_date": "2026-07-20",
+          "note": "Live AIS is unavailable, so this is the bundled sample dataset." }
 ```
 
-`source` is either `live` or `snapshot`, and the block carries how old the
-oldest position is. Nothing about how you call these tools changes between the
-two modes, and a snapshot answer is never mistakable for a live one.
+`source` is either `live` or `snapshot`. Nothing about how you call the tools
+changes between the two, and a snapshot answer is never mistakable for a live
+one.
 
-Live records are built from AIS, which does not transmit everything these tools
-report. Flag state is derived from the MMSI, length from the hull dimensions, and
-nearest port is computed here. **Anything AIS has not reported yet is `null`,
-never guessed.** A vessel usually broadcasts its position far more often than its
-identity, so a freshly seen ship may have a position and no name, type or length
-until it next sends static data.
+AIS does not transmit everything these tools report. Flag state is derived from
+the MMSI country digits, length from the transmitted hull dimensions, and
+nearest port is computed here. **Anything AIS has not reported is `null`, never
+guessed.** A ship broadcasts its position every few seconds and its identity
+roughly once in ten of those, so a freshly seen vessel often has a position and
+no name, type or size until it next sends static data.
+
+The feed also carries objects that are not ships, such as navigation buoys and
+base stations. Those are classified by their MMSI prefix and excluded.
+
+## Tests
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
+140 tests, well under a second. No API key, no network, no dependence on the
+clock. The translation layer runs against 199 real AIS messages captured over
+the Strait of Malacca and committed as a fixture, so it is checked against
+traffic that genuinely occurred rather than against invented input.
+
+## How it is built
+
+| Piece | Where |
+|-------|-------|
+| MCP tools and the source seam | `maritime_mcp_server/server.py` |
+| AIS translation and lookup tables | `maritime_mcp_server/ais_mapping.py` |
+| Vessel store, merging and expiry | `maritime_mcp_server/store.py` |
+| Websocket client and reconnect | `maritime_mcp_server/collector.py` |
+| Bundled fallback dataset | `maritime_mcp_server/data/vessels.json` |
+
+Built with the official [`mcp`](https://pypi.org/project/mcp/) SDK, currently
+pinned below 2.0 while the code targets the 1.x FastMCP API.
+
+Every decision, test result and mistake made while building this is written down
+under `.shipline/`, one folder per piece of work, including the plans, manual
+test scripts, retrospectives and runbooks.
 
 ## Extending it
 
-- Widen the bounding box in `collector.py` to cover more than Malaysian waters.
-- Add tools (route ETA, anchorage occupancy) — clients discover them automatically.
-- Add authentication and switch to the HTTP/SSE transport for remote clients.
+- Widen the bounding box in `collector.py` to cover somewhere other than Malaysia.
+- Add ports to `PORT_COORDS` in `server.py`.
+- Add tools such as route ETA or anchorage occupancy. Clients discover them automatically.
+- Switch `run()` to the HTTP or SSE transport for remote clients, and add authentication.
 
 ## Licence
 
