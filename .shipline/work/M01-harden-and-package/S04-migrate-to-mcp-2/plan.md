@@ -3,17 +3,22 @@ pipeline_state:
   story_id: S04
   milestone: M01
   title: Migrate to the mcp 2.x MCPServer API
-  current_phase: plan      # plan | build | verify | test | retro | deliver | done
-  phases_completed: []
-  approved_by_user: false
+  current_phase: done      # plan | build | verify | test | retro | deliver | done
+  phases_completed: [plan, build, verify, test, retro, runbook, deliver]
+  approved_by_user: true
   branch: feat/S04-migrate-to-mcp-2
-  started_at: 2026-09-14
-  last_updated: 2026-09-14
-  guardrails_loaded: [G1, G2, G3, G4, G5, G6]
+  started_at: 2026-09-15
+  last_updated: 2026-09-15
+  guardrails_loaded: [G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, G11, G12, G13, G14, G15, G16, G17, G18, G19, G20]
 ---
 
 # S04: Migrate to the mcp 2.x MCPServer API
 
+> **Revalidated on 2026-09-15, before approval.** This plan was written before
+> S02, S03, S05 and S06 existed. Section 2 now records what the migration was
+> actually tested against rather than what was true a day ago. Two findings
+> change it: `lifespan` survives, and `Tool.inputSchema` has been renamed.
+>
 > **Renumbered from S02 to S04 on 2026-09-14, before any code was written.**
 > The user redirected the milestone toward connecting a live data source, which
 > became S02. This plan is unchanged otherwise and its investigation still holds:
@@ -39,6 +44,50 @@ planning and ran it end to end. It is two lines. The 2.x API kept the decorator
 shape, the decorators still return the undecorated function, and `run()` still
 defaults to stdio.
 
+### What the revalidation found
+
+The whole migration was performed in a scratch copy and the **entire 157 test
+suite run against it under `mcp` 2.2.0**, which was not possible when this plan
+was first written because no tests existed.
+
+**155 of 157 passed.** The two failures are real and neither is in the server:
+
+```
+AttributeError: 'Tool' object has no attribute 'inputSchema'.
+                Did you mean: 'input_schema'?
+
+FAILED tests/test_server.py::test_the_schema_publishes_the_radius_bounds
+FAILED tests/test_server.py::test_every_tool_parameter_carries_a_description
+```
+
+**The rename is Python side only. The wire format is unchanged.** Compared
+directly, byte for byte where it matters:
+
+| | mcp 1.30.0 | mcp 2.2.0 |
+|---|---|---|
+| Tool JSON keys | `description, inputSchema, name, outputSchema` | identical |
+| `radius_nm` constraint | `exclusiveMinimum: 0, maximum: 500` | identical |
+| `radius_nm: -5` | rejected | rejected |
+| `flag: " malaysia "` | 7 matches | 7 matches |
+| `serverInfo.version` | `1.30.0` | `""` |
+
+So **no client is affected**, and the only code to change beyond the two import
+lines is two of my own tests.
+
+Three things that did not exist when this plan was written, all verified to
+survive:
+
+- **`lifespan`.** `MCPServer.__init__` accepts it, typed
+  `Callable[[MCPServer[LifespanResultT]], AbstractAsyncContextManager[...]]`.
+  The AIS collector still starts and stops with the server.
+- **`Annotated[..., Field(...)]` parameter constraints** from S06. The generated
+  schema is identical and out of range values are still rejected.
+- **The source seam and `set_store`** from S02. Untouched by the SDK.
+
+The `PackageNotFoundError` risk this plan named a day ago is real and was
+reproduced: `version("maritime-mcp-server")` raises when the package is not
+installed, which happens when running from a source checkout.
+
 ### Dependencies
 
 | Dependency | Status | What it provides |
@@ -63,10 +112,11 @@ defaults to stdio.
 | Dependency range moved from `>=1.2.0,<2` to `>=2,<3` | trivial | low |
 | A version to report in `serverInfo`, which 2.x leaves empty | low | low, cosmetic but visible to clients |
 
-**Maturity rating: 8/10.** The migration is written and proven to work before the
-story starts. The remaining two points are the wire level differences that only
-show up under a client, and the fact that no automated test covers the protocol
-surface, so parity rests on a harness this story has to make permanent.
+**Maturity rating: 9/10.** Raised from 8 at revalidation. The migration is
+written, and unlike a day ago it has been run against a 157 test suite and a
+side by side wire comparison. The remaining point is that the live websocket path
+is stubbed in every test, so the collector's behaviour under 2.x is inferred from
+`lifespan` accepting the same argument rather than observed against the feed.
 
 ## 3. Guardrails that apply
 
@@ -143,7 +193,18 @@ become actively misleading. Per G1 the new ceiling is mandatory, not optional.
 **How to check it worked:** a fresh environment built from the project resolves
 `mcp` 2.2.0, and `pip install "mcp>=3"` into it reports a conflict.
 
-### Step 4: Prove wire level parity
+### Step 4: Update the two tests that read the renamed attribute
+
+**Files touched:** `tests/test_server.py`, two lines.
+
+**What changes:** `tool.inputSchema` becomes `tool.input_schema` in
+`test_the_schema_publishes_the_radius_bounds` and
+`test_every_tool_parameter_carries_a_description`. Nothing else in the suite
+touches the renamed attribute, confirmed by running it.
+
+**How to check it worked:** all 157 pass under 2.x.
+
+### Step 5: Prove wire level parity
 
 **Files touched:** none.
 
@@ -154,7 +215,7 @@ code and diff the two captures.
 from `1.30.0` to `0.1.0`. Every other field identical. This difference is
 intended and is the subject of AC-5.
 
-### Step 5: Prove it from a wheel
+### Step 6: Prove it from a wheel
 
 **Files touched:** none.
 
@@ -166,7 +227,7 @@ it, then run the harness against that installation.
 metadata alone, and the server answers a real client from a directory that is
 not the project root.
 
-### Step 6: Update the documentation
+### Step 7: Update the documentation
 
 **Files touched:** `README.md`, `maritime_mcp_server/server.py` docstring if it
 names the SDK version, `.shipline/config.json` if the verify command changes.
@@ -185,15 +246,50 @@ be edited.
 
 | ID | Criterion | Met |
 |----|-----------|-----|
-| AC-1 | A fresh environment built from `pyproject.toml` resolves `mcp` 2.x, and the smoke test passes against it | [ ] |
-| AC-2 | `grep -rn 'FastMCP\|mcp\.server\.fastmcp' maritime_mcp_server/ pyproject.toml README.md` returns nothing | [ ] |
-| AC-3 | The wire level capture after migration is identical to the capture before it, field for field, except `serverInfo.version` | [ ] |
-| AC-4 | `tools/call` on `vessel_details("Kowloon Express")` returns MMSI 477055221, and `resources/read` on `vessels://all` returns 18 records, both from a wheel installed outside the repository | [ ] |
-| AC-5 | `serverInfo.version` reports `0.1.0`, the project's own version, rather than the SDK's version or an empty string | [ ] |
-| AC-6 | `pyproject.toml` declares an upper bound at the next major version, and installing `mcp>=3` into the project environment is reported as a conflict | [ ] |
-| AC-7 | `DATA_FILE` still resolves through `importlib.resources`, and the server still answers correctly when run from a directory that is not the project root | [ ] |
-| AC-8 | The failure paths are unchanged: unknown port lists the five known ports, unknown MMSI returns its error, an ambiguous name returns candidates | [ ] |
-| AC-9 | `tools/compare_wire.py` is committed and runnable, so the next SDK upgrade can be checked the same way instead of by hand | [ ] |
+| AC-1 | A fresh environment built from `pyproject.toml` resolves `mcp` 2.x, and the smoke test passes | [x] |
+| AC-2 | No code references `FastMCP` or `mcp.server.fastmcp` | [x] see note |
+| AC-3 | All 157 tests pass under `mcp` 2.x, with only the two `input_schema` lines changed | [x] |
+| AC-4 | The wire capture after migration is identical to the one before, except `serverInfo.version` | [x] |
+| AC-5 | A wheel installed outside the repository serves MMSI 477055221 and 18 records | [x] |
+| AC-6 | `serverInfo.version` reports `0.1.0` rather than the SDK's version or an empty string | [x] |
+| AC-7 | The version lookup falls back cleanly rather than raising when the package is not installed | [x] |
+| AC-8 | The upper bound is declared and enforced | [x] see note |
+| AC-9 | The S06 schema constraints still hold | [x] |
+| AC-10 | The S03 collector still starts and stops with the server, verified with a real key | [x] |
+| AC-11 | The failure paths are unchanged | [x] |
+
+### Evidence
+
+- **AC-1, AC-5.** A wheel installed into a venv created outside the repository
+  resolved `mcp` 2.2.0 from metadata alone, returned MMSI 477055221 for
+  Kowloon Express and 18 records from `vessels://all`, and reported version
+  `0.1.0`.
+- **AC-2.** No *code* reference survives. Two mentions of the word remain and are
+  deliberate: a docstring and a `pyproject.toml` comment, both recording that 1.x
+  called this class `FastMCP`. A third, in the README, said the code still
+  targeted 1.x and was corrected; that one was a genuine falsehood rather than
+  history.
+- **AC-3.** 157 passed under 2.2.0, and 157 passed under 2.1.1 as well. The only
+  source change outside the two import lines was `.inputSchema` to
+  `.input_schema` in two tests.
+- **AC-4 and AC-11.** `tools/compare_wire.py` captured 11 responses before and
+  after. A field by field walk reports **exactly one difference**:
+  `initialize.serverInfo.version`, `1.30.0` to `0.1.0`. Tool schemas, the
+  unknown port error, the rejected radius, the blank query error and the resource
+  are byte identical.
+- **AC-6, AC-7.** `_own_version()` returns `0.1.0` when installed and
+  `0.0.0+source` when `version()` raises `PackageNotFoundError`, which was
+  reproduced in a source checkout during revalidation rather than assumed.
+- **AC-8.** `mcp` 3.x does not exist, so the criterion as written could not bite.
+  The mechanism was proven instead by temporarily declaring `mcp>=2,<2.2` with
+  2.2.0 installed: pip **downgraded to 2.1.1**, confirming the bound is enforced
+  rather than advisory. Restored to `>=2,<3` afterwards.
+- **AC-9.** The captured `tools/list` is identical, so `exclusiveMinimum: 0` and
+  `maximum: 500` survive, as does the rejection of `radius_nm: -5`.
+- **AC-10.** The only criterion no test can cover, since `_session` is stubbed
+  everywhere. With a real key the server logged `AIS stream connected` and
+  answered with 55 live vessels near Tanjung Pelepas, including VANDA SUCCESS and
+  CAT LAI EXPRESS.
 
 ## 7. Files to create or modify
 
@@ -210,6 +306,7 @@ be edited.
 | `maritime_mcp_server/server.py` | import, class name, and a `version` argument |
 | `pyproject.toml` | dependency range `>=2,<3`, and the comment above it |
 | `README.md` | note the targeted SDK line, correct the transport sentence |
+| `tests/test_server.py` | two lines, `inputSchema` to `input_schema` |
 
 ## 8. Risks
 
@@ -256,4 +353,55 @@ pip install dist/maritime_mcp_server-0.1.0-py3-none-any.whl
 pip show mcp | grep -i version                     # expect 2.x
 ```
 
-**Result:** not yet run.
+**Result:** run on 2026-09-15. All eleven criteria met, against both `mcp` 2.1.1
+and 2.2.0.
+
+## 11. Divergence log
+
+### D-1: `Tool.inputSchema` was renamed, and only the tests noticed
+
+**When:** revalidation, before the story was approved.
+
+**What happened:** running the full suite against a migrated scratch copy gave
+155 of 157 passing:
+
+```
+AttributeError: 'Tool' object has no attribute 'inputSchema'.
+                Did you mean: 'input_schema'?
+```
+
+**Why it matters:** **the wire format is unchanged.** A side by side capture
+shows `inputSchema` in the JSON under both versions, with identical constraints.
+The rename is confined to the Python object, so no client breaks and only my own
+test code needed two edits.
+
+**Why it is the story's best argument for S05:** without a test suite this would
+have shipped silently and surfaced later in whatever reads tool metadata. It was
+caught in half a second by tests written for a different reason entirely.
+
+### D-2: the upper bound could not be tested as written
+
+**When:** verifying AC-8.
+
+**What happened:** the criterion said installing `mcp>=3` should be reported as a
+conflict. There is no `mcp` 3.x, so pip reports `No matching distribution found`,
+which proves nothing about our bound.
+
+**Fix:** temporarily declared `mcp>=2,<2.2` with 2.2.0 installed. Pip
+**downgraded to 2.1.1**, which is direct evidence the ceiling is enforced.
+Restored immediately.
+
+**An unplanned benefit:** that left the environment on 2.1.1, so the suite was
+run there too. It passes on both ends of the declared range rather than only on
+the newest release, which nothing in the plan had thought to check.
+
+### D-3: 2.x is quieter on stderr
+
+**When:** AC-10, comparing live runs.
+
+**What happened:** under 1.x each call logged `Processing request of type
+CallToolRequest`. Under 2.x it does not. Only `AIS stream connected` appears.
+
+**Assessment:** an SDK logging change, not a behaviour change, and invisible on
+the wire. Recorded because a quieter log can read as a broken server when you are
+watching stderr to see whether anything is happening.

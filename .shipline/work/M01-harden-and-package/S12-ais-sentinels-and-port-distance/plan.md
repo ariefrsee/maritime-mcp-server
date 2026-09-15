@@ -1,12 +1,12 @@
 ---
 pipeline_state:
-  story_id: S06
+  story_id: S12
   milestone: M01
   title: AIS not-available sentinels, and how far the nearest port actually is
   current_phase: verify     # plan | build | verify | test | retro | deliver | done
   phases_completed: [plan, build, verify]
   approved_by_user: true
-  branch: fix/S06-ais-sentinels-and-port-distance
+  branch: fix/S06-ais-sentinels-and-port-distance   # branch keeps its original name
   started_at: 2026-09-15
   last_updated: 2026-09-15
   guardrails_loaded: [G1, G2, G3, G4, G5, G6, G7, G8, G9]
