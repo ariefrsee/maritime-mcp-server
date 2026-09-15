@@ -3,8 +3,8 @@ pipeline_state:
   story_id: S11
   milestone: M01
   title: Reconcile the two lines onto mcp 2.x
-  current_phase: build      # plan | build | verify | test | retro | deliver | done
-  phases_completed: [plan]
+  current_phase: verify     # plan | build | verify | test | retro | deliver | done
+  phases_completed: [plan, build, verify]
   approved_by_user: true
   branch: feat/S11-reconcile-onto-mcp-2
   started_at: 2026-09-15
@@ -136,3 +136,75 @@ taken with a measurement, not quietly during a merge.
 | mcp 2.x changed behaviour beyond the rename | Criterion 4 runs both suites; anything that moves gets recorded rather than patched over |
 | The dashboard breaks against the reconciled server | It is spawned from a checkout, so it is exercised live in criterion 8 before this is called done |
 | Renumbering rewrites history others may hold | The remote branches are not rewritten; only local story directories and their frontmatter are renamed |
+
+## 8. Verify
+
+```
+$ .venv/bin/python -m pytest
+246 passed
+
+$ .venv/bin/python -m maritime_mcp_server.smoke_test
+All smoke checks passed.
+```
+
+Both suites together: 213 local plus the remote's, none skipped, none deleted.
+
+Live, through a real MCP client on mcp 2.2.0:
+
+```
+  tools: search_vessels, vessels_near_port, vessel_details, vessel_track, fleet_track
+  vessels://all -> live, 240 vessels
+    DENITA WAVE  port Port Dickson 4.6 nm  course 233.0  heading 139.0
+  vessel_track -> 2 positions
+  fleet_track  -> 414 vessels, 4520 positions, truncated False
+  fleet_track(hours=-5) -> rejected by validation
+```
+
+That last line is the point of the story in one output: a tool added on the
+local line, rejecting a bad argument through validation added on the remote
+line, returning fields added by two more local stories.
+
+### Acceptance criteria
+
+| # | Criterion | Met | Evidence |
+|---|---|---|---|
+| 1 | No commit discarded from either side | yes | `origin/main` is an ancestor of HEAD, and all five local story branches are reachable |
+| 2 | mcp 2.x installed and bounded below 3 | yes | mcp 2.2.0, `pyproject` reads `mcp>=2,<3` |
+| 3 | The server imports | yes | tools listed over stdio |
+| 4 | Every test from both lines passes | yes | 246 passed |
+| 5 | The two added tools are validated | yes | `fleet_track(hours=-5)` rejected |
+| 6 | Responses go through `_respond` | yes | no `json.dumps` left in either added tool |
+| 7 | Local fields survive | yes | `nearest_port_nm` 4.6, `course_degrees` 233.0, `heading_degrees` 139.0 |
+| 8 | A live run returns vessels, a track and a fleet track | yes | above |
+| 9 | Colliding ids renumbered | yes | S06 to S12, S07 to S13, every id now unique |
+| 10 | smoke test passes | yes | above |
+
+### What the conflict actually was
+
+One file, `server.py`, one hunk. Their serialisation helpers against my
+`_nearest_port` returning a distance. Both were kept. `README.md` and
+`tests/test_server.py` merged without help, and every other file built locally
+was untouched by the remote.
+
+### Two budgets raised, deliberately
+
+`test_a_typical_response_is_not_dominated_by_formatting` and
+`test_the_default_limit_keeps_a_busy_answer_small` failed, which was the G9
+tension in the plan arriving on schedule. The compact responses story set
+15,000 and 6,000 before `nearest_port_nm`, `course_degrees` and
+`heading_degrees` existed; those cost about 60 characters a vessel and took the
+same calls to 18,116 and 6,771. The budgets moved to 20,000 and 7,500 with the
+measurement written beside them. The fields were not dropped to fit.
+
+### Numbering
+
+Story numbers run across milestones here, so both collisions were real. Local
+S06 became S12 and local S07 became S13. Branches and commit messages keep their
+original names: rewriting published history to tidy a number costs more than the
+number is worth, and each renamed plan says what it was called before.
+
+### Follow-up, not built here (F5)
+
+`.shipline/config.json` marks M01 done and M02 active, but six stories landed in
+M01 after it was closed, because the local line did not know M01 had been
+closed. Which milestone they belong to is the user's call, not a merge decision.

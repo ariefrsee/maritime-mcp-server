@@ -1,18 +1,23 @@
 ---
 pipeline_state:
-  story_id: S07
+  story_id: S13
   milestone: M01
   title: Vessel history that survives a restart
   current_phase: verify     # plan | build | verify | test | retro | deliver | done
   phases_completed: [plan, build, verify]
   approved_by_user: true
-  branch: feat/S07-durable-vessel-history
+  branch: feat/S07-durable-vessel-history   # branch keeps its original name
   started_at: 2026-09-15
   last_updated: 2026-09-15
   guardrails_loaded: [G1, G2, G3, G4, G5, G6, G7, G8, G9]
 ---
 
-# S07: Vessel history that survives a restart
+# S13: Vessel history that survives a restart
+
+> Renumbered from S07 during S11. Story numbers run across milestones here, so
+> this collided with M02's S07, "compact responses". Only the id moved; the
+> branch and the commit that carries this work still say S07, because rewriting
+> published history to tidy a number would cost more than the number is worth.
 
 ## 1. What this is
 
