@@ -694,6 +694,60 @@ def vessels_in_area(
                      "returned": len(shown), "vessels": shown})
 
 
+@mcp.tool()
+def vessels_watched(
+    limit: Annotated[int, Field(
+        gt=0, le=1000,
+        description="Maximum vessels to return, between 1 and 1000. The response "
+                    "always states how many were in the watched regions, so a "
+                    "truncated answer is visible rather than silent.")] = 500,
+) -> str:
+    """Vessels inside the regions currently being watched, and nothing else.
+
+    The store keeps every vessel it has collected until the position ages out
+    of the thirty minute window, which includes vessels from a region that has
+    since been deselected. That is the right thing for the store to do and the
+    wrong thing to show: someone who selects Malaysia means show me Malaysia,
+    not Malaysia plus whatever was on screen ten minutes ago.
+
+    With no live subscription there is nothing being watched, so no filter
+    applies and everything is returned with a note saying so.
+    """
+    vessels, provenance = get_vessels()
+    active = _collector.regions if _collector is not None else []
+
+    if not active:
+        return _respond({
+            "data": provenance,
+            "watching": [],
+            "note": "Nothing is being watched, so nothing is filtered out. The "
+                    "server has no live subscription and is answering from its "
+                    "bundled snapshot.",
+            "matches": len(vessels),
+            "returned": len(vessels[:limit]),
+            "vessels": [_tidy(v) for v in vessels[:limit]],
+        })
+
+    matched = [
+        v for v in vessels
+        if any(regions_module.contains(key, v.get("lat"), v.get("lon")) for key in active)
+    ]
+
+    # Recomputed over what is actually being returned. The provenance from
+    # get_vessels reports the stalest position in the whole store, and a caller
+    # told "the oldest fix here is 29 minutes" about a vessel that has been
+    # filtered out is being told something false about the answer it received.
+    ages = [v.get("position_age_seconds") for v in matched
+            if v.get("position_age_seconds") is not None]
+    reported = dict(provenance)
+    reported["vessel_count"] = len(matched)
+    reported["oldest_position_age_seconds"] = max(ages) if ages else None
+
+    shown = [_tidy(v) for v in matched[:limit]]
+    return _respond({"data": reported, "watching": active, "matches": len(matched),
+                     "returned": len(shown), "vessels": shown})
+
+
 @mcp.resource("vessels://all")
 def all_vessels() -> str:
     """The full vessel dataset as a JSON resource."""
