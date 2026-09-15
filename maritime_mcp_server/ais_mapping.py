@@ -221,12 +221,52 @@ def identity(message) -> dict:
     }
 
 
+# AIS reserves a value in each of these fields to mean "not available". The
+# wire format is integer tenths, so aisstream delivers them already scaled:
+# speed over ground 1023 arrives as 102.3 knots, course over ground 3600 as
+# 360 degrees. Heading is transmitted in whole degrees and is not scaled.
+#
+# These are sentinels, not measurements. Passed through, they read as a vessel
+# doing 102.3 knots on a course of 360 degrees, which is worse than an obvious
+# gap because nothing downstream can tell it is wrong (G8).
+SOG_MAX_KNOTS = 102.2
+COG_MAX_DEGREES = 359.9
+HEADING_NOT_AVAILABLE = 511
+
+
+def speed_over_ground(sog):
+    """Speed in knots, or None when AIS said it does not have one."""
+    if sog is None:
+        return None
+    if sog < 0 or sog > SOG_MAX_KNOTS:
+        return None
+    return sog
+
+
+def course_over_ground(cog):
+    """Course in degrees, or None when AIS said it does not have one."""
+    if cog is None:
+        return None
+    if cog < 0 or cog > COG_MAX_DEGREES:
+        return None
+    return cog
+
+
+def true_heading(heading):
+    """Heading in degrees, or None when AIS said it does not have one."""
+    if heading is None:
+        return None
+    if heading < 0 or heading >= HEADING_NOT_AVAILABLE:
+        return None
+    return heading
+
+
 def position_fields(body) -> dict:
     """The position half of a record, from either position message type."""
     return {
         "lat": body.get("Latitude"),
         "lon": body.get("Longitude"),
-        "speed_knots": body.get("Sog"),
+        "speed_knots": speed_over_ground(body.get("Sog")),
         "status": navigational_status(body.get("NavigationalStatus")),
     }
 
