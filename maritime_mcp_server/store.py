@@ -75,6 +75,8 @@ class VesselStore:
                 "observed_at": observed,
                 "restored": {
                     "status": row["status"],
+                    "course_degrees": row["course_degrees"],
+                    "heading_degrees": row["heading_degrees"],
                     "type": row["type"],
                     "flag": row["flag"],
                     "length_m": row["length_m"],
@@ -141,6 +143,8 @@ class VesselStore:
                 fields["lon"],
                 fields["speed_knots"],
                 fields["status"],
+                cog=fields["course_degrees"],
+                heading=fields["heading_degrees"],
             )
         if ident["name"]:
             self._history.record_identity(mmsi, observed, name=ident["name"])

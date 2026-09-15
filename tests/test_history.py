@@ -262,3 +262,98 @@ def test_a_nonsense_retention_falls_back_rather_than_crashing(monkeypatch):
 def test_a_zero_retention_would_delete_everything_so_it_is_refused(monkeypatch):
     monkeypatch.setenv(HISTORY_DAYS_VAR, "0")
     assert history_days() == DEFAULT_HISTORY_DAYS
+
+
+# --- course and heading -------------------------------------------------------
+#
+# Where a vessel is going, and where its bow points. Never defaulted to 0:
+# that is due north, a real heading, and inventing it would point a fleet the
+# wrong way (G8).
+
+
+def test_course_and_heading_are_recorded(history):
+    """AC-1, AC-2, AC-6."""
+    store = store_with(history)
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="STEERING",
+                          Cog=87.5, TrueHeading=90))
+    row = history.track("533012345", WHEN - timedelta(hours=1))[0]
+    assert row["course_degrees"] == 87.5
+    assert row["heading_degrees"] == 90
+
+
+def test_the_course_and_heading_sentinels_are_stored_as_nothing(history):
+    """AC-3."""
+    store = store_with(history)
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="NO STEER",
+                          Cog=360, TrueHeading=511))
+    row = history.track("533012345", WHEN - timedelta(hours=1))[0]
+    assert row["course_degrees"] is None
+    assert row["heading_degrees"] is None
+
+
+def test_a_missing_course_is_null_and_not_north(history):
+    """AC-4. The distinction the whole story turns on."""
+    store = store_with(history)
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="SILENT"))
+    row = history.track("533012345", WHEN - timedelta(hours=1))[0]
+    assert row["course_degrees"] is None
+    assert row["heading_degrees"] is None
+
+
+def test_due_north_survives_as_zero(history):
+    """AC-5. Zero is a heading, not an absence, and must not be lost."""
+    store = store_with(history)
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="NORTHBOUND",
+                          Cog=0, TrueHeading=0))
+    row = history.track("533012345", WHEN - timedelta(hours=1))[0]
+    assert row["course_degrees"] == 0
+    assert row["heading_degrees"] == 0
+
+
+def test_a_restored_vessel_keeps_its_course(history):
+    """AC-7."""
+    store = store_with(history)
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="STEERING",
+                          Cog=180, TrueHeading=182))
+    revived = VesselStore(max_age=timedelta(days=3650), history=history)
+    record = revived.records(now=WHEN + timedelta(minutes=1))[0]
+    assert record["course_degrees"] == 180
+    assert record["heading_degrees"] == 182
+
+
+def test_a_database_written_before_these_columns_still_opens(tmp_path):
+    """AC-8 risk: an older database must migrate, not fail on first query."""
+    import sqlite3
+
+    path = tmp_path / "old.db"
+    old = sqlite3.connect(path)
+    old.executescript(
+        "CREATE TABLE positions (mmsi TEXT NOT NULL, observed_at TEXT NOT NULL,"
+        " lat REAL, lon REAL, sog REAL, status TEXT);"
+        "CREATE TABLE vessels (mmsi TEXT PRIMARY KEY, name TEXT, type TEXT,"
+        " flag TEXT, length_m REAL, destination TEXT, updated_at TEXT);"
+    )
+    old.execute("INSERT INTO positions (mmsi, observed_at, lat, lon, sog, status)"
+                " VALUES ('533012345', '2026-09-14T06:00:00+00:00', 3.0, 101.3, 8.0, 'Moored')")
+    old.commit()
+    old.close()
+
+    migrated = VesselHistory(path=str(path))
+    try:
+        row = migrated.track("533012345", WHEN - timedelta(days=1))[0]
+        assert row["lat"] == 3.0, "the old row survives"
+        assert row["course_degrees"] is None, "and has no course, rather than failing"
+    finally:
+        migrated.close()
+
+
+def test_the_real_sentinel_fixture_yields_no_course(sentinel_messages, history):
+    """AC-8. The captured message carried all three sentinels at once."""
+    store = store_with(history)
+    store.ingest(sentinel_messages[0])
+    mmsi = str(sentinel_messages[0]["MetaData"]["MMSI"])
+    rows = history.track(mmsi, datetime(2000, 1, 1, tzinfo=timezone.utc))
+    assert rows, "the message was ingested"
+    assert rows[0]["speed_knots"] is None
+    assert rows[0]["course_degrees"] is None
+    assert rows[0]["heading_degrees"] is None
