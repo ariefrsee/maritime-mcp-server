@@ -34,6 +34,7 @@ from pydantic import Field
 from .collector import Collector
 from .history import VesselHistory
 from .store import VesselStore
+from . import regions as regions_module
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
@@ -80,6 +81,7 @@ async def _lifespan(_server):
     collector = Collector(store)
     started = collector.start()
     set_history(history)
+    set_collector(collector if started else None)
     if started:
         set_store(store)
     try:
@@ -87,6 +89,7 @@ async def _lifespan(_server):
     finally:
         await collector.stop()
         set_store(None)
+        set_collector(None)
         set_history(None)
         history.close()
 
@@ -128,6 +131,20 @@ def set_history(history) -> None:
     """Register the durable history. Called by the server lifespan hook."""
     global _history
     _history = history
+
+
+_collector = None
+
+
+def set_collector(collector) -> None:
+    """Register the running collector, so the region tools can reach it.
+
+    None when there is no API key and the server is answering from the bundled
+    snapshot. The region tools report that state rather than pretending a
+    subscription exists to change.
+    """
+    global _collector
+    _collector = collector
 
 
 @lru_cache(maxsize=1)
@@ -518,6 +535,163 @@ def fleet_track(
         },
         "fleet": list(fleet.values()),
     })
+
+
+@mcp.tool()
+def list_regions() -> str:
+    """List the sea areas this server can watch, and what each one costs.
+
+    The feed is rationed by throughput rather than by area. A subscription
+    above roughly 25 messages a second is closed by the vendor within a couple
+    of minutes, and a whole-world subscription dies inside one, so a selection
+    has to be chosen to fit a budget rather than simply widened.
+
+    Each region reports its measured message rate. A rate of null means nobody
+    has measured that region yet, and a selection containing one has an unknown
+    total: that is reported as unknown rather than as a partial sum. Use
+    set_regions to change what is being watched.
+    """
+    active = _collector.regions if _collector is not None else []
+    payload = regions_module.describe(active)
+    payload["active"] = active
+    payload["live"] = _collector is not None
+    if _collector is None:
+        payload["note"] = (
+            "No live subscription: the server has no AIS key and is answering "
+            "from its bundled snapshot. The region table is still accurate, but "
+            "nothing is being watched and set_regions has nothing to change."
+        )
+    return _respond(payload)
+
+
+@mcp.tool()
+async def set_regions(
+    region_keys: Annotated[str, Field(
+        description="Comma separated region keys to watch, for example "
+                    "'malaysia,singapore-strait'. Call list_regions for the "
+                    "available keys and what each one costs.")],
+) -> str:
+    """Change which sea areas the live subscription watches.
+
+    Applied to the open connection where possible, so the feed is not
+    interrupted. Vessels already collected are not discarded: the store keeps
+    them until they age out of its 30-minute window, so a region just switched
+    away from fades rather than vanishing.
+
+    A selection over the throughput budget is accepted and reported, not
+    refused. The caller asked for it, and the honest answer is that the feed
+    will drop and reconnect repeatedly rather than a limit that does not exist.
+    """
+    if _collector is None:
+        return _respond({
+            "ok": False,
+            "error": "There is no live subscription to change. The server has no "
+                     "AIS key and is answering from its bundled snapshot.",
+            "regions": [],
+        })
+    result = await _collector.set_regions(region_keys)
+    if result.get("ok") and result.get("within_budget") is False:
+        result["warning"] = (
+            f"This selection is about {result['estimated_rate_per_s']} messages a "
+            f"second, over the {result['budget_per_s']} the feed has been seen to "
+            "sustain. Expect it to drop and reconnect, losing positions each time."
+        )
+    if result.get("ok") and result.get("within_budget") is None:
+        result["warning"] = (
+            "Part of this selection has never been measured, so its cost is "
+            "unknown. It may or may not stay connected."
+        )
+    return _respond(result)
+
+
+def _parse_bbox(text):
+    """Read "south,west,north,east" into floats, or return None with a reason."""
+    parts = [p.strip() for p in str(text or "").split(",") if p.strip()]
+    if len(parts) != 4:
+        return None, "A bbox is four numbers: south,west,north,east."
+    try:
+        south, west, north, east = (float(p) for p in parts)
+    except ValueError:
+        return None, "A bbox is four numbers: south,west,north,east."
+    if not (-90 <= south <= 90 and -90 <= north <= 90):
+        return None, "Latitudes must be between -90 and 90."
+    if not (-180 <= west <= 180 and -180 <= east <= 180):
+        return None, "Longitudes must be between -180 and 180."
+    if south > north:
+        return None, "South must not be north of north."
+    return (south, west, north, east), None
+
+
+@mcp.tool()
+def vessels_in_area(
+    bbox: Annotated[str, Field(
+        description="Area to report, as 'south,west,north,east' in degrees, for "
+                    "example '1.0,103.0,2.0,104.5'. Leave blank to use region "
+                    "instead.")] = "",
+    region: Annotated[str, Field(
+        description="A region key to report instead of a bbox, for example "
+                    "'malaysia'. Call list_regions for the available keys. "
+                    "Ignored when bbox is given.")] = "",
+    limit: Annotated[int, Field(
+        gt=0, le=500,
+        description="Maximum vessels to return, between 1 and 500. The response "
+                    "always states how many were in the area, so a truncated "
+                    "answer is visible rather than silent.")] = 200,
+) -> str:
+    """Vessels inside one area of sea, rather than everywhere the server watches.
+
+    This exists because a selection covering several regions can hold far more
+    vessels than any one caller wants at once, and sending all of them is
+    expensive for an answer about one strait. Ask for the water you care about.
+
+    The area filters what has already been collected, which is a different
+    question from what is subscribed to: a region switched away from still has
+    vessels in the store until they age out, and an area nobody is subscribed
+    to simply returns nothing.
+    """
+    if bbox.strip():
+        parsed, error = _parse_bbox(bbox)
+        if error:
+            return _respond({"error": error, "matches": 0, "returned": 0, "vessels": []})
+        south, west, north, east = parsed
+
+        def inside(v):
+            lat, lon = v.get("lat"), v.get("lon")
+            if lat is None or lon is None:
+                return False
+            # A box crossing the antimeridian has west greater than east, and
+            # the longitude test has to wrap with it rather than matching
+            # nothing, which is what a plain range comparison would do.
+            if west <= east:
+                in_lon = west <= lon <= east
+            else:
+                in_lon = lon >= west or lon <= east
+            return south <= lat <= north and in_lon
+        area = {"bbox": {"south": south, "west": west, "north": north, "east": east}}
+    elif region.strip():
+        key = regions_module.normalise(region)
+        if key not in regions_module.REGIONS:
+            return _respond({
+                "error": f"No region called {region.strip()!r}. Call list_regions "
+                         "for the available keys.",
+                "matches": 0, "returned": 0, "vessels": [],
+            })
+
+        def inside(v):
+            return regions_module.contains(key, v.get("lat"), v.get("lon"))
+        area = {"region": key, "bounds": regions_module.bounds_of(
+            regions_module.REGIONS[key]["box"])}
+    else:
+        return _respond({
+            "error": "Give either a bbox or a region.",
+            "matches": 0, "returned": 0, "vessels": [],
+        })
+
+    vessels, provenance = get_vessels()
+    matched = [v for v in vessels if inside(v)]
+    shown = [_tidy(v) for v in matched[:limit]]
+    return _respond({"data": provenance, "area": area, "matches": len(matched),
+                     "returned": len(shown), "vessels": shown})
 
 
 @mcp.resource("vessels://all")
