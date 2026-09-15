@@ -73,8 +73,28 @@ knowing nothing and fills up over the following minutes. During testing it held
 0 vessels at 3 seconds, 40 at 150 seconds and 63 at five minutes. There is no
 backfill to request; the feed does not replay what you missed.
 
-Coverage is Malaysian waters, roughly 0.5N to 7.5N and 98.5E to 105.5E, which
-spans the Strait of Malacca and both coasts of the peninsula.
+The subscribed box is 0.5N to 7.5N and 98.5E to 119.5E: the Strait of Malacca,
+both coasts of the peninsula, and Sabah and Sarawak.
+
+**Subscribing to water is not the same as having coverage of it.** aisstream is
+fed by volunteer land-based receivers, and there are very few on the Malaysian
+coast. Measured over four minutes of live feed, counting distinct vessels within
+30 nm of each port:
+
+```
+  Tanjung Pelepas        86        Kuching                 0
+  Port Dickson           19        Bintulu                 0
+  Malacca                 5        Miri                    0
+  Kota Kinabalu           5        Labuan                  0
+  Port Klang              0        Sandakan                0
+  Penang                  0        Kuantan                 0
+  Langkawi                0        Kemaman                 0
+```
+
+Nearly everything the server sees is in the Singapore Strait and around Tanjung
+Pelepas. Port Klang, Malaysia's largest port, returns nothing. Widening the
+bounding box does not change that; only a receiver near the port, or a paid feed
+with satellite AIS, would.
 
 ## Use it from Claude Desktop
 

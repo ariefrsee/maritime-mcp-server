@@ -31,12 +31,35 @@ from .store import VesselStore
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
+# Malaysian commercial ports. The list was peninsular only, which meant a vessel
+# off Kota Kinabalu took the nearest name it could find and was labelled Tanjung
+# Pelepas from 800 nm away. Naming a port a vessel is nowhere near is the bug
+# S06 fixed at 38 nm; the list has to reach wherever the bounding box does.
 PORT_COORDS = {
+    # Peninsular, west coast
     "port klang": (3.00, 101.36),
-    "tanjung pelepas": (1.36, 103.54),
     "penang": (5.41, 100.34),
-    "malacca": (2.19, 102.25),
     "langkawi": (6.32, 99.85),
+    "malacca": (2.19, 102.25),
+    "port dickson": (2.52, 101.80),
+    "lumut": (4.24, 100.63),
+    # Peninsular, south and east coast
+    "tanjung pelepas": (1.36, 103.54),
+    "pasir gudang": (1.44, 103.90),
+    "kuantan": (3.97, 103.43),
+    "kemaman": (4.25, 103.45),
+    "kuala terengganu": (5.33, 103.14),
+    "kota bharu": (6.20, 102.28),
+    # Sarawak
+    "kuching": (1.57, 110.34),
+    "bintulu": (3.26, 113.06),
+    "miri": (4.40, 113.99),
+    "sibu": (2.29, 111.83),
+    # Sabah and Labuan
+    "labuan": (5.28, 115.24),
+    "kota kinabalu": (5.98, 116.07),
+    "sandakan": (5.84, 118.12),
+    "tawau": (4.24, 117.89),
 }
 
 @asynccontextmanager
