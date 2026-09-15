@@ -97,6 +97,40 @@ def _load_snapshot() -> list[dict]:
     return json.loads(DATA_FILE.read_text(encoding="utf-8"))
 
 
+# Responses are read by a model, not a person. Indentation cost 29 percent of a
+# typical payload and carried no information, so everything is serialised
+# compactly through one function rather than each tool choosing for itself.
+def _respond(payload) -> str:
+    return json.dumps(payload, separators=(",", ":"))
+
+
+# AIS positions are nowhere near as precise as a Python float prints them.
+# Four decimal places is roughly 11 metres, which is finer than the source.
+# The extra digits were noise that looked like data.
+_PRECISION = {"lat": 4, "lon": 4, "speed_knots": 1, "distance_nm": 1, "length_m": 0}
+
+
+def _tidy(record: dict, drop=()) -> dict:
+    """Round the numbers and drop fields that carry nothing in this context.
+
+    Nothing is removed for being unknown: a null still means AIS has not
+    reported that field, which is a different claim from the field being
+    absent. Only genuinely redundant fields are dropped, and only when the
+    caller already has the information.
+    """
+    out = {}
+    for key, value in record.items():
+        if key in drop:
+            continue
+        places = _PRECISION.get(key)
+        if places is not None and isinstance(value, (int, float)):
+            value = round(value, places)
+            if places == 0:
+                value = int(value)
+        out[key] = value
+    return out
+
+
 def _filter_text(value) -> str:
     """Normalise a filter the way the port lookup already normalises a port name.
 
@@ -175,12 +209,19 @@ def search_vessels(
         description="Navigational status to match, case insensitive and partial. "
                     "Examples: Under way, At anchor, Moored. "
                     "Leave blank to match any status.")] = "",
+    limit: Annotated[int, Field(
+        gt=0, le=200,
+        description="Maximum number of vessels to return, between 1 and 200. "
+                    "The response always reports how many matched, so a "
+                    "truncated answer is visible rather than silent.")] = 25,
 ) -> str:
     """Search the vessel dataset by type, flag state, and/or navigational status.
 
     Any argument left blank is ignored, and surrounding whitespace is ignored.
-    Returns JSON with a "data" block stating the source of the data and a
-    "vessels" list. When data.source is "snapshot" the positions are from a
+    Returns JSON with a "data" block stating the source, a "matches" count of
+    everything that matched, a "returned" count of how many are included, and a
+    "vessels" list. When returned is less than matches the list was capped by
+    the limit argument: raise it or narrow the search to see the rest. When data.source is "snapshot" the positions are from a
     fixed sample dataset and are not current: say so when answering.
     Fields that AIS has not reported yet are null, never guessed.
     """
@@ -198,7 +239,9 @@ def search_vessels(
         if wanted_status and wanted_status not in (v.get("status") or "").lower():
             continue
         results.append(v)
-    return json.dumps({"data": provenance, "matches": len(results), "vessels": results}, indent=2)
+    shown = [_tidy(v) for v in results[:limit]]
+    return _respond({"data": provenance, "matches": len(results),
+                     "returned": len(shown), "vessels": shown})
 
 
 @mcp.tool()
@@ -211,12 +254,19 @@ def vessels_near_port(
         description="Search radius in nautical miles, greater than 0 and at most "
                     "500. The server only receives traffic for Malaysian waters, "
                     "so a radius beyond that covers sea it never sees.")] = 30.0,
+    limit: Annotated[int, Field(
+        gt=0, le=200,
+        description="Maximum number of vessels to return, nearest first, between 1 and 200. "
+                    "The response always reports how many matched, so a "
+                    "truncated answer is visible rather than silent.")] = 25,
 ) -> str:
     """List vessels within a radius (nautical miles) of a named port.
 
     Recognized ports: Port Klang, Tanjung Pelepas, Penang, Malacca, Langkawi.
-    Returns JSON with a "data" block stating the source, and a "vessels" list
-    annotated with distance_nm, nearest first. When data.source is "snapshot"
+    Returns JSON with a "data" block stating the source, a "matches" count of
+    everything inside the radius, a "returned" count of how many are included,
+    and a "vessels" list annotated with distance_nm, nearest first. When
+    returned is less than matches the nearest were kept and the rest omitted. When data.source is "snapshot"
     the positions are not current: say so when answering.
     """
     key = port.strip().lower()
@@ -234,8 +284,11 @@ def vessels_near_port(
         if dist <= radius_nm:
             hits.append({**v, "distance_nm": round(dist, 1)})
     hits.sort(key=lambda x: x["distance_nm"])
-    return json.dumps({"data": provenance, "port": port, "radius_nm": radius_nm,
-                       "matches": len(hits), "vessels": hits}, indent=2)
+    # The caller named the port, so repeating it on every vessel tells them
+    # nothing. The per vessel age is already summarised in the provenance block.
+    shown = [_tidy(v, drop=("nearest_port", "position_age_seconds")) for v in hits[:limit]]
+    return _respond({"data": provenance, "port": port, "radius_nm": radius_nm,
+                     "matches": len(hits), "returned": len(shown), "vessels": shown})
 
 
 @mcp.tool()
@@ -254,7 +307,7 @@ def vessel_details(
     q = query.strip().lower()
     if not q:
         _, provenance = get_vessels(require_position=False)
-        return json.dumps({
+        return _respond({
             "data": provenance,
             "error": "A vessel name or MMSI is required. Pass part of a ship's "
                      "name, or its nine digit MMSI.",
@@ -265,24 +318,22 @@ def vessel_details(
     matches = [v for v in vessels
                if q == (v.get("mmsi") or "") or q in (v.get("name") or "").lower()]
     if not matches:
-        return json.dumps({"data": provenance,
-                           "error": f"No vessel found matching '{query}'."})
+        return _respond({"data": provenance,
+                         "error": f"No vessel found matching '{query}'."})
     if len(matches) > 1:
-        return json.dumps(
-            {
-                "data": provenance,
-                "error": f"'{query}' matched {len(matches)} vessels; be more specific.",
-                "candidates": [{"mmsi": m.get("mmsi"), "name": m.get("name")} for m in matches],
-            }
-        )
-    return json.dumps({"data": provenance, "vessel": matches[0]}, indent=2)
+        return _respond({
+            "data": provenance,
+            "error": f"'{query}' matched {len(matches)} vessels; be more specific.",
+            "candidates": [{"mmsi": m.get("mmsi"), "name": m.get("name")} for m in matches],
+        })
+    return _respond({"data": provenance, "vessel": _tidy(matches[0])})
 
 
 @mcp.resource("vessels://all")
 def all_vessels() -> str:
     """The full vessel dataset as a JSON resource."""
     vessels, provenance = get_vessels()
-    return json.dumps({"data": provenance, "vessels": vessels}, indent=2)
+    return _respond({"data": provenance, "vessels": [_tidy(v) for v in vessels]})
 
 
 def main() -> None:

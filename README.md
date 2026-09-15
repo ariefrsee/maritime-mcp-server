@@ -28,13 +28,24 @@ vessels_near_port("Tanjung Pelepas", 40)
 
 | Tool | What it answers |
 |------|-----------------|
-| `search_vessels(vessel_type, flag, status)` | which ships match a type, flag state or navigational status |
-| `vessels_near_port(port, radius_nm)` | what is within a radius of a named port, nearest first. Radius must be above 0 and at most 500 nautical miles |
+| `search_vessels(vessel_type, flag, status, limit)` | which ships match a type, flag state or navigational status |
+| `vessels_near_port(port, radius_nm, limit)` | what is within a radius of a named port, nearest first. Radius must be above 0 and at most 500 nautical miles |
 | `vessel_details(query)` | everything known about one ship, by MMSI or name |
 
 Resource `vessels://all` returns the whole current picture.
 
 Ports: Port Klang, Tanjung Pelepas, Penang, Malacca, Langkawi.
+
+Both list tools take a `limit`, default 25, between 1 and 200. Every response
+reports `matches`, how many qualified, and `returned`, how many are included, so
+a capped answer says so rather than looking complete. For `vessels_near_port` the
+nearest are kept.
+
+Responses are serialised compactly and positions are rounded to four decimal
+places, about 11 metres, which is finer than AIS itself reports. A typical
+question costs roughly a fifth of what it did before this was tuned. Fields AIS
+has not reported remain explicitly `null` rather than being dropped, because
+absent and unknown are different claims.
 
 Filters are case insensitive, partial, and ignore surrounding whitespace. Bad
 input is refused rather than answered: a radius outside the allowed range is
