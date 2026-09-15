@@ -213,3 +213,69 @@ def test_the_resource_follows_the_live_store(filled_store):
     out = parse(S.all_vessels())
     assert out["data"]["source"] == "live"
     assert len(out["vessels"]) == 89
+
+
+# --- vessel_track -------------------------------------------------------------
+
+@pytest.fixture
+def history_server():
+    """Server wired to an in-memory history, torn down cleanly."""
+    from datetime import timedelta as _td
+    from maritime_mcp_server.history import VesselHistory
+
+    h = VesselHistory(path=":memory:")
+    store = VesselStore(max_age=_td(days=3650), history=h)
+    S.set_store(store)
+    S.set_history(h)
+    yield store, h
+    S.set_store(None)
+    S.set_history(None)
+    h.close()
+
+
+def test_track_returns_the_positions_that_were_recorded(history_server):
+    """AC-7."""
+    store, _ = history_server
+    for minute, lat in ((0, 3.00), (1, 3.05), (2, 3.10)):
+        store.ingest(position(533012345, when=f"2026-09-14 06:0{minute}:00.0 +0000 UTC",
+                              lat=lat, lon=101.3, name="MOVER"))
+    out = parse(S.vessel_track("533012345", hours=24 * 365 * 10))
+    assert [p["lat"] for p in out["track"]] == [3.00, 3.05, 3.10]
+    assert out["data"]["position_count"] == 3
+
+
+def test_track_of_an_unknown_mmsi_is_empty_rather_than_an_error(history_server):
+    out = parse(S.vessel_track("999999999", hours=24))
+    assert out["track"] == []
+    assert "error" not in out
+
+
+def test_track_resolves_a_name_the_way_the_other_tools_do(history_server):
+    store, _ = history_server
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=3.0, lon=101.3, name="KOWLOON EXPRESS"))
+    out = parse(S.vessel_track("kowloon", hours=24 * 365 * 10))
+    assert out["data"]["mmsi"] == "533012345"
+    assert len(out["track"]) == 1
+
+
+def test_track_says_so_when_a_name_matches_nothing(history_server):
+    out = parse(S.vessel_track("no such ship", hours=24))
+    assert "error" in out
+    assert out["track"] == []
+
+
+def test_track_states_that_gaps_are_real(history_server):
+    """A caller must not read the list as a continuous path."""
+    store, _ = history_server
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=3.0, lon=101.3, name="GAPPY"))
+    out = parse(S.vessel_track("533012345", hours=24 * 365 * 10))
+    assert "interpolated" in out["data"]["note"]
+
+
+def test_track_without_history_configured_reports_that_plainly():
+    S.set_history(None)
+    out = parse(S.vessel_track("533012345", hours=24))
+    assert out["track"] == []
+    assert "not enabled" in out["error"]
