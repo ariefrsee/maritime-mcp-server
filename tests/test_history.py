@@ -357,3 +357,67 @@ def test_the_real_sentinel_fixture_yields_no_course(sentinel_messages, history):
     assert rows[0]["speed_knots"] is None
     assert rows[0]["course_degrees"] is None
     assert rows[0]["heading_degrees"] is None
+
+
+# --- the fleet, as it was -----------------------------------------------------
+
+def test_fleet_track_groups_positions_by_vessel(history):
+    """AC-1."""
+    store = store_with(history)
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="ALPHA"))
+    store.ingest(position(563000001, when=DAY, lat=1.3, lon=103.6, name="BRAVO"))
+    store.ingest(position(533012345, when="2026-09-14 06:05:00.0 +0000 UTC",
+                          lat=3.1, lon=101.4, name="ALPHA"))
+
+    fleet, truncated = history.fleet_track(WHEN - timedelta(hours=1), 1000)
+    assert set(fleet) == {"533012345", "563000001"}
+    assert len(fleet["533012345"]["positions"]) == 2
+    assert truncated is False
+
+
+def test_fleet_track_carries_identity_so_no_second_lookup_is_needed(history):
+    """AC-2."""
+    store = store_with(history)
+    store.ingest(static(533012345, when=DAY))
+    store.ingest(position(533012345, when=DAY, lat=3.0, lon=101.3, name="ALPHA"))
+    fleet, _ = history.fleet_track(WHEN - timedelta(hours=1), 1000)
+    assert fleet["533012345"]["name"] == "ALPHA"
+    assert fleet["533012345"]["type"] is not None
+
+
+def test_fleet_track_orders_each_vessel_oldest_first(history):
+    """AC-3."""
+    store = store_with(history)
+    for minute, lat in ((10, 3.2), (0, 3.0), (5, 3.1)):
+        store.ingest(position(533012345, when=f"2026-09-14 06:{minute:02d}:00.0 +0000 UTC",
+                              lat=lat, lon=101.3, name="ALPHA"))
+    fleet, _ = history.fleet_track(WHEN - timedelta(hours=1), 1000)
+    assert [p["lat"] for p in fleet["533012345"]["positions"]] == [3.0, 3.1, 3.2]
+
+
+def test_a_vessel_with_no_history_in_the_window_is_absent(history):
+    """AC-4. Absent, not present and empty: an empty track reads as a vessel
+    that reported nothing, which is a different claim."""
+    store = store_with(history)
+    store.ingest(position(533012345, when="2026-09-14 01:00:00.0 +0000 UTC",
+                          lat=3.0, lon=101.3, name="EARLY"))
+    fleet, _ = history.fleet_track(WHEN - timedelta(minutes=30), 1000)
+    assert fleet == {}
+
+
+def test_fleet_track_reports_when_it_hit_the_cap(history):
+    """AC-6. Silently returning less would draw vessels vanishing."""
+    store = store_with(history)
+    for minute in range(5):
+        store.ingest(position(533012345, when=f"2026-09-14 06:{minute:02d}:00.0 +0000 UTC",
+                              lat=3.0 + minute / 100, lon=101.3, name="CHATTY"))
+    fleet, truncated = history.fleet_track(WHEN - timedelta(hours=1), 3)
+    assert truncated is True
+    assert sum(len(v["positions"]) for v in fleet.values()) == 3
+
+
+def test_fleet_track_on_an_empty_database_is_empty_not_an_error(history):
+    """AC-8."""
+    fleet, truncated = history.fleet_track(WHEN - timedelta(hours=1), 1000)
+    assert fleet == {}
+    assert truncated is False

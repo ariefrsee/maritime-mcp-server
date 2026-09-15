@@ -371,3 +371,55 @@ def test_every_port_coordinate_is_in_malaysian_waters():
     for name, (lat, lon) in S.PORT_COORDS.items():
         assert 0.5 <= lat <= 7.5, f"{name} latitude out of range"
         assert 98.5 <= lon <= 119.5, f"{name} longitude out of range"
+
+
+# --- fleet_track --------------------------------------------------------------
+
+def test_fleet_track_returns_the_whole_fleet(history_server):
+    store, _ = history_server
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=3.0, lon=101.3, name="ALPHA"))
+    store.ingest(position(563000001, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=1.3, lon=103.6, name="BRAVO"))
+    out = parse(S.fleet_track(hours=24 * 365 * 10))
+    assert out["data"]["vessel_count"] == 2
+    assert out["data"]["position_count"] == 2
+    assert {v["name"] for v in out["fleet"]} == {"ALPHA", "BRAVO"}
+
+
+def test_fleet_track_states_that_gaps_are_real(history_server):
+    """AC-7. The median vessel reports a handful of times an hour."""
+    out = parse(S.fleet_track(hours=1))
+    assert "interpolated" in out["data"]["note"]
+
+
+def test_fleet_track_clamps_a_negative_window_to_nothing(history_server):
+    """AC-5. A negative window must not mean everything."""
+    store, _ = history_server
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=3.0, lon=101.3, name="ALPHA"))
+    out = parse(S.fleet_track(hours=-5))
+    assert out["data"]["hours"] == 0
+    assert out["data"]["vessel_count"] == 0
+
+
+def test_fleet_track_clamps_a_window_beyond_retention(history_server):
+    out = parse(S.fleet_track(hours=24 * 365 * 100))
+    assert out["data"]["hours"] <= 24 * 90
+
+
+def test_fleet_track_flags_truncation_in_the_payload(history_server):
+    store, _ = history_server
+    for minute in range(6):
+        store.ingest(position(533012345, when=f"2026-09-14 06:{minute:02d}:00.0 +0000 UTC",
+                              lat=3.0 + minute / 100, lon=101.3, name="CHATTY"))
+    out = parse(S.fleet_track(hours=24 * 365 * 10, limit=3))
+    assert out["data"]["truncated"] is True
+    assert out["data"]["row_limit"] == 3
+
+
+def test_fleet_track_without_history_reports_that_plainly():
+    S.set_history(None)
+    out = parse(S.fleet_track(hours=1))
+    assert out["fleet"] == []
+    assert "not enabled" in out["error"]

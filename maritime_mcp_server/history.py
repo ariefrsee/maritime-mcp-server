@@ -267,6 +267,53 @@ class VesselHistory:
             for r in rows
         ]
 
+    def fleet_track(self, since: datetime, limit: int) -> tuple[dict, bool]:
+        """Every vessel's positions since a cutoff, grouped by MMSI.
+
+        One query rather than one per vessel: playback needs the whole picture,
+        and asking several hundred times is not an answer. Identity is joined in
+        so a caller does not have to go looking for names separately.
+
+        Returns the grouping and whether the row cap was reached. A caller that
+        silently receives less than it asked for would draw vessels vanishing.
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                """
+                SELECT p.mmsi, p.observed_at, p.lat, p.lon, p.sog, p.cog, p.heading,
+                       p.status, v.name, v.type, v.flag
+                FROM positions p
+                LEFT JOIN vessels v ON v.mmsi = p.mmsi
+                WHERE p.observed_at >= ?
+                ORDER BY p.mmsi ASC, p.observed_at ASC
+                LIMIT ?
+                """,
+                (_iso(since), limit + 1),
+            ).fetchall()
+
+        truncated = len(rows) > limit
+        if truncated:
+            rows = rows[:limit]
+
+        fleet: dict = {}
+        for r in rows:
+            entry = fleet.get(r[0])
+            if entry is None:
+                entry = {"mmsi": r[0], "name": r[8], "type": r[9], "flag": r[10],
+                         "positions": []}
+                fleet[r[0]] = entry
+            entry["positions"].append({
+                "observed_at": r[1],
+                "lat": r[2],
+                "lon": r[3],
+                "speed_knots": r[4],
+                "course_degrees": r[5],
+                "heading_degrees": r[6],
+                "status": r[7],
+            })
+        return fleet, truncated
+
     def prune(self, now: datetime | None = None) -> int:
         """Drop positions past the retention window. Returns how many went."""
         now = now or datetime.now(timezone.utc)

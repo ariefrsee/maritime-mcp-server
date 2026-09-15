@@ -338,6 +338,53 @@ def vessel_track(query: str, hours: float = 6) -> str:
     }, indent=2)
 
 
+@mcp.tool()
+def fleet_track(hours: float = 3, limit: int = 20000) -> str:
+    """Where every vessel has been over the last few hours.
+
+    Returns JSON with a "data" block and a "fleet" list, one entry per vessel,
+    each with its identity and its positions oldest first. Intended for playback
+    and for checking work against what was actually observed.
+
+    Each position is one AIS report that was received. The gaps between them are
+    real: the median vessel reports only a handful of times an hour, so two fixes
+    an hour apart are two observations and not a path. Nothing is interpolated.
+
+    When "truncated" is true the row cap was reached and this is not the whole
+    picture. Narrow the window rather than assuming the missing vessels are gone.
+    """
+    if _history is None:
+        return json.dumps({
+            "data": {"source": "unavailable"},
+            "error": "History is not enabled on this server.",
+            "fleet": [],
+        })
+
+    retention_hours = _history.retention.total_seconds() / 3600
+    hours = max(0.0, min(float(hours), retention_hours))
+    limit = max(1, min(int(limit), 200_000))
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+
+    fleet, truncated = _history.fleet_track(since, limit)
+    positions = sum(len(v["positions"]) for v in fleet.values())
+
+    return json.dumps({
+        "data": {
+            "source": "history",
+            "hours": hours,
+            "vessel_count": len(fleet),
+            "position_count": positions,
+            "truncated": truncated,
+            "row_limit": limit,
+            "note": (
+                "Positions are AIS reports as received. Gaps are real and "
+                "nothing between them is interpolated."
+            ),
+        },
+        "fleet": list(fleet.values()),
+    })
+
+
 @mcp.resource("vessels://all")
 def all_vessels() -> str:
     """The full vessel dataset as a JSON resource."""
