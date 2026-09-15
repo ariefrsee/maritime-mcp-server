@@ -13,6 +13,7 @@ import logging
 import pytest
 
 from maritime_mcp_server import collector as collector_module
+from maritime_mcp_server import regions
 from maritime_mcp_server.collector import Collector
 from maritime_mcp_server.store import VesselStore
 from helpers import position
@@ -221,7 +222,7 @@ def _inside(box, lat, lon):
 
 def test_the_box_reaches_sabah_and_sarawak():
     """AC-1. Half of Malaysia is east of where this box used to stop."""
-    box = collector_module.DEFAULT_BOX[0]
+    box = regions.REGIONS["malaysia"]["box"][0]
     for port, (lat, lon) in EAST_MALAYSIAN_PORTS.items():
         assert _inside(box, lat, lon), f"{port} is outside the subscribed box"
 
@@ -238,12 +239,25 @@ def test_the_previous_box_excluded_all_of_them():
 
 
 def test_the_peninsula_is_still_covered():
-    box = collector_module.DEFAULT_BOX[0]
+    box = regions.REGIONS["malaysia"]["box"][0]
     for lat, lon in ((3.00, 101.36), (1.36, 103.54), (5.41, 100.34), (2.52, 101.80)):
         assert _inside(box, lat, lon)
 
 
-def test_there_is_still_exactly_one_bounding_box():
+def test_the_malaysia_region_is_still_exactly_one_bounding_box():
     """AC-7. The vendor closes the connection if the subscription is malformed."""
-    assert len(collector_module.DEFAULT_BOX) == 1
-    assert len(collector_module.DEFAULT_BOX[0]) == 2
+    assert len(regions.REGIONS["malaysia"]["box"]) == 1
+    assert len(regions.REGIONS["malaysia"]["box"][0]) == 2
+
+
+def test_the_default_subscription_is_still_malaysia():
+    """S09's coverage guarantee is only worth anything if it is what ships.
+
+    The regions work made the subscription selectable, so this pins the
+    unselected case: a server started with nothing configured must still come
+    up watching Malaysian waters and nothing else.
+    """
+    store = VesselStore()
+    c = Collector(store, api_key="x", region_keys=None)
+    assert c.regions == ["malaysia"]
+    assert c._boxes() == regions.REGIONS["malaysia"]["box"]
