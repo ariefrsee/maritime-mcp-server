@@ -202,3 +202,48 @@ def test_the_key_is_not_exposed_as_a_public_attribute():
     public = {n: getattr(c, n) for n in dir(c) if not n.startswith("_")
               and not callable(getattr(c, n))}
     assert KEY not in repr(public)
+
+
+# --- how much water is subscribed to -----------------------------------------
+
+OLD_BOX_EAST_EDGE = 105.5
+
+EAST_MALAYSIAN_PORTS = {
+    "Kuching": (1.57, 110.34), "Bintulu": (3.26, 113.06), "Miri": (4.40, 113.99),
+    "Labuan": (5.28, 115.24), "Kota Kinabalu": (5.98, 116.07), "Sandakan": (5.84, 118.12),
+}
+
+
+def _inside(box, lat, lon):
+    (south, west), (north, east) = box
+    return south <= lat <= north and west <= lon <= east
+
+
+def test_the_box_reaches_sabah_and_sarawak():
+    """AC-1. Half of Malaysia is east of where this box used to stop."""
+    box = collector_module.DEFAULT_BOX[0]
+    for port, (lat, lon) in EAST_MALAYSIAN_PORTS.items():
+        assert _inside(box, lat, lon), f"{port} is outside the subscribed box"
+
+
+def test_the_previous_box_excluded_all_of_them():
+    """AC-2. Pins the change to its reason, not to a number.
+
+    Every East Malaysian port sat outside the old eastern edge, so none had ever
+    been requested. An earlier probe in this project reported zero vessels at
+    Bintulu while Bintulu was not being subscribed to, which measured nothing.
+    """
+    for port, (_, lon) in EAST_MALAYSIAN_PORTS.items():
+        assert lon > OLD_BOX_EAST_EDGE, f"{port} would have been inside the old box"
+
+
+def test_the_peninsula_is_still_covered():
+    box = collector_module.DEFAULT_BOX[0]
+    for lat, lon in ((3.00, 101.36), (1.36, 103.54), (5.41, 100.34), (2.52, 101.80)):
+        assert _inside(box, lat, lon)
+
+
+def test_there_is_still_exactly_one_bounding_box():
+    """AC-7. The vendor closes the connection if the subscription is malformed."""
+    assert len(collector_module.DEFAULT_BOX) == 1
+    assert len(collector_module.DEFAULT_BOX[0]) == 2

@@ -31,9 +31,17 @@ log = logging.getLogger(__name__)
 ENDPOINT = "wss://stream.aisstream.io/v0/stream"
 API_KEY_VAR = "AISSTREAM_API_KEY"
 
-# Malaysian waters: the Strait of Malacca and both coasts of the peninsula.
+# Malaysian waters: the Strait of Malacca, both coasts of the peninsula, and
+# Sabah and Sarawak. The eastern edge was 105.5, which stopped short of Borneo
+# entirely, so Kuching, Bintulu, Miri, Labuan, Kota Kinabalu and Sandakan were
+# never subscribed to and could not have been received.
+#
+# Subscribing to water is not the same as having coverage of it. Most Malaysian
+# ports return nothing because no receiver in the aisstream network is near
+# them. This box stops the server refusing to ask; it does not create receivers.
+#
 # Ordered [[[lat, lon], [lat, lon]]] as the vendor's example shows.
-DEFAULT_BOX = [[[0.5, 98.5], [7.5, 105.5]]]
+DEFAULT_BOX = [[[0.5, 98.5], [7.5, 119.5]]]
 
 # Reconnect backoff. A free service does not deserve a tight retry loop, so this
 # backs off hard and gives up rather than hammering forever.

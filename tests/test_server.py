@@ -331,3 +331,43 @@ def test_track_without_history_configured_reports_that_plainly():
     out = parse(S.vessel_track("533012345", hours=24))
     assert out["track"] == []
     assert "not enabled" in out["error"]
+
+
+# --- ports beyond the peninsula ----------------------------------------------
+
+def test_an_east_malaysian_vessel_gets_an_east_malaysian_port():
+    """AC-4. Before this, it was labelled Tanjung Pelepas from 800 nm away."""
+    store = VesselStore(max_age=timedelta(days=3650))
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=5.99, lon=116.10, name="OFF KK"))
+    S.set_store(store)
+    vessel = parse(S.search_vessels())["vessels"][0]
+    assert vessel["nearest_port"] == "Kota Kinabalu"
+    assert vessel["nearest_port_nm"] < 15
+
+
+def test_the_peninsula_still_answers_the_same():
+    """AC-5. Adding ports must not move an answer that was already right."""
+    store = VesselStore(max_age=timedelta(days=3650))
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=3.01, lon=101.37, name="NEAR KLANG"))
+    S.set_store(store)
+    assert parse(S.search_vessels())["vessels"][0]["nearest_port"] == "Port Klang"
+
+
+def test_vessels_near_port_picks_up_a_new_port_without_separate_wiring():
+    """AC-6."""
+    store = VesselStore(max_age=timedelta(days=3650))
+    store.ingest(position(533012345, when="2026-09-14 06:00:00.0 +0000 UTC",
+                          lat=5.99, lon=116.10, name="OFF KK"))
+    S.set_store(store)
+    out = parse(S.vessels_near_port("Kota Kinabalu", 30))
+    assert "error" not in out
+    assert out["matches"] == 1
+
+
+def test_every_port_coordinate_is_in_malaysian_waters():
+    """AC-3. A typo in a coordinate is silent and mislabels everything near it."""
+    for name, (lat, lon) in S.PORT_COORDS.items():
+        assert 0.5 <= lat <= 7.5, f"{name} latitude out of range"
+        assert 98.5 <= lon <= 119.5, f"{name} longitude out of range"
