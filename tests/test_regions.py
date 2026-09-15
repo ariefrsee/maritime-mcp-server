@@ -202,3 +202,81 @@ async def test_set_regions_survives_a_selection_nobody_has_measured():
     assert result["estimated_rate_per_s"] is None
     assert result["within_budget"] is None
     assert c.regions == ["malaysia", unmeasured]
+
+
+# --- showing only what is being watched ---------------------------------------
+
+def _fake_collector(regions_list):
+    class C:
+        regions = regions_list
+    return C()
+
+
+def test_watched_returns_only_vessels_inside_the_active_regions(monkeypatch):
+    """The bug this fixes: selecting Malaysia still showed the Mediterranean,
+    because the store keeps everything it collected until it ages out."""
+    from maritime_mcp_server import server
+    import json
+
+    vessels = [
+        {"mmsi": "1", "lat": 3.0, "lon": 101.4, "position_age_seconds": 10},    # Port Klang
+        {"mmsi": "2", "lat": 43.3, "lon": 5.4, "position_age_seconds": 20},     # Marseille
+        {"mmsi": "3", "lat": 1.3, "lon": 103.8, "position_age_seconds": 30},    # Singapore
+        {"mmsi": "4", "lat": 40.7, "lon": -74.0, "position_age_seconds": 1700}, # New York
+    ]
+    monkeypatch.setattr(server, "get_vessels", lambda *a, **k: (vessels, {"source": "live"}))
+    monkeypatch.setattr(server, "_collector", _fake_collector(["malaysia"]))
+
+    out = json.loads(server.vessels_watched())
+    assert out["watching"] == ["malaysia"]
+    assert out["matches"] == 2
+    assert {v["mmsi"] for v in out["vessels"]} == {"1", "3"}
+
+
+def test_watched_reports_the_stalest_fix_among_what_it_returns(monkeypatch):
+    """Otherwise the banner says "the stalest fix here is 28m" about a vessel
+    that was filtered out, which is a false statement about the answer given."""
+    from maritime_mcp_server import server
+    import json
+
+    vessels = [
+        {"mmsi": "1", "lat": 3.0, "lon": 101.4, "position_age_seconds": 10},
+        {"mmsi": "4", "lat": 40.7, "lon": -74.0, "position_age_seconds": 1700},
+    ]
+    monkeypatch.setattr(server, "get_vessels", lambda *a, **k: (vessels, {
+        "source": "live", "vessel_count": 2, "oldest_position_age_seconds": 1700}))
+    monkeypatch.setattr(server, "_collector", _fake_collector(["malaysia"]))
+
+    out = json.loads(server.vessels_watched())
+    assert out["data"]["oldest_position_age_seconds"] == 10
+    assert out["data"]["vessel_count"] == 1
+
+
+def test_watched_filters_nothing_when_there_is_no_subscription(monkeypatch):
+    from maritime_mcp_server import server
+    import json
+
+    vessels = [{"mmsi": "2", "lat": 43.3, "lon": 5.4, "position_age_seconds": 20}]
+    monkeypatch.setattr(server, "get_vessels", lambda *a, **k: (vessels, {"source": "snapshot"}))
+    monkeypatch.setattr(server, "_collector", None)
+
+    out = json.loads(server.vessels_watched())
+    assert out["watching"] == []
+    assert out["matches"] == 1
+    assert "Nothing is being watched" in out["note"]
+
+
+def test_watched_spans_every_active_region(monkeypatch):
+    from maritime_mcp_server import server
+    import json
+
+    vessels = [
+        {"mmsi": "1", "lat": 3.0, "lon": 101.4, "position_age_seconds": 10},   # Malaysia
+        {"mmsi": "2", "lat": -6.2, "lon": 106.8, "position_age_seconds": 20},  # Jakarta
+        {"mmsi": "3", "lat": 43.3, "lon": 5.4, "position_age_seconds": 30},    # Marseille
+    ]
+    monkeypatch.setattr(server, "get_vessels", lambda *a, **k: (vessels, {"source": "live"}))
+    monkeypatch.setattr(server, "_collector", _fake_collector(["malaysia", "indonesia"]))
+
+    out = json.loads(server.vessels_watched())
+    assert {v["mmsi"] for v in out["vessels"]} == {"1", "2"}
