@@ -403,3 +403,48 @@ guardrails:
       than a feeling, because a criterion a script can evaluate is the only kind
       that can catch you being wrong.
 
+  - id: G19
+    status: active
+    title: Normalise the same input the same way everywhere it is accepted
+    reason: >
+      vessels_near_port normalised its port name with strip and lower from the
+      first version, so " port klang " worked. The three filters on
+      search_vessels compared raw input, so " malaysia " returned zero vessels
+      when there are seven. Nobody decided that; the two were written at
+      different times. It is not a crash and it does not look wrong, so an AI
+      assistant would have relayed the empty result as fact. Every other defect
+      in this project announced itself.
+    applies_to: [backend, frontend, mobile, content, ops]
+    severity: high
+    discovered_in: S06
+    discovered_on: 15/09/2026
+    injection: >
+      When more than one entry point accepts the same kind of input, a name, a
+      code, a search term, normalise it in one shared function and call that
+      function from every one of them. Never let one path strip and lowercase
+      while another compares raw text. Before adding a second place that accepts
+      an input, check how the first one treats it, and write a test that passes
+      the same padded, mixed case value to both.
+
+  - id: G20
+    status: active
+    title: Probe the running system before planning validation, not the source
+    reason: >
+      S06 was planned as "validate every tool input". Reading the code suggested
+      a long list of crashes on bad types. Driving the running server over its
+      real protocol showed that the framework already rejected every one of them
+      before the code was reached, and that only three semantic defects
+      remained. Planning from the source would have produced a story half of
+      which reimplemented the framework.
+    applies_to: [backend, infrastructure]
+    severity: medium
+    discovered_in: S06
+    discovered_on: 15/09/2026
+    injection: >
+      Before planning validation, error handling or defensive code, send the bad
+      input to the running system the way a real caller would and record what
+      actually happens. Frameworks, serialisers and schema layers often handle
+      more than the function body suggests. What raises a TypeError in a direct
+      call may already be a clean error at the boundary, and defending against
+      it twice adds a second thing to keep in step.
+
