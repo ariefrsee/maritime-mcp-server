@@ -21,8 +21,10 @@ from functools import lru_cache
 from importlib.resources import files
 
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from .collector import Collector
 from .store import VesselStore
@@ -75,6 +77,16 @@ def set_store(store) -> None:
 @lru_cache(maxsize=1)
 def _load_snapshot() -> list[dict]:
     return json.loads(DATA_FILE.read_text(encoding="utf-8"))
+
+
+def _filter_text(value) -> str:
+    """Normalise a filter the way the port lookup already normalises a port name.
+
+    A filter of only whitespace means the same as no filter. Before this, a
+    stray space made a filter match nothing, which returned a confidently wrong
+    answer rather than an error.
+    """
+    return value.strip().lower() if isinstance(value, str) else ""
 
 
 def _nearest_port(lat, lon) -> str | None:
@@ -133,32 +145,55 @@ def _haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 @mcp.tool()
-def search_vessels(vessel_type: str = "", flag: str = "", status: str = "") -> str:
+def search_vessels(
+    vessel_type: Annotated[str, Field(
+        description="Ship category to match, case insensitive and partial. "
+                    "Examples: Tanker, Cargo, Passenger, Tug, Fishing. "
+                    "Leave blank to match any type.")] = "",
+    flag: Annotated[str, Field(
+        description="Flag state to match, case insensitive and partial, for "
+                    "example Malaysia or Singapore. Leave blank to match any flag.")] = "",
+    status: Annotated[str, Field(
+        description="Navigational status to match, case insensitive and partial. "
+                    "Examples: Under way, At anchor, Moored. "
+                    "Leave blank to match any status.")] = "",
+) -> str:
     """Search the vessel dataset by type, flag state, and/or navigational status.
 
-    Any argument left blank is ignored. Matching is case-insensitive and partial.
-    vessel_type examples: Tanker, Container, Cargo, Ferry, Tug, Fishing.
-    status examples: "Under way", "At anchor", "Engaged in fishing".
+    Any argument left blank is ignored, and surrounding whitespace is ignored.
     Returns JSON with a "data" block stating the source of the data and a
     "vessels" list. When data.source is "snapshot" the positions are from a
     fixed sample dataset and are not current: say so when answering.
     Fields that AIS has not reported yet are null, never guessed.
     """
+    wanted_type = _filter_text(vessel_type)
+    wanted_flag = _filter_text(flag)
+    wanted_status = _filter_text(status)
+
     vessels, provenance = get_vessels()
     results = []
     for v in vessels:
-        if vessel_type and vessel_type.lower() not in (v.get("type") or "").lower():
+        if wanted_type and wanted_type not in (v.get("type") or "").lower():
             continue
-        if flag and flag.lower() not in (v.get("flag") or "").lower():
+        if wanted_flag and wanted_flag not in (v.get("flag") or "").lower():
             continue
-        if status and status.lower() not in (v.get("status") or "").lower():
+        if wanted_status and wanted_status not in (v.get("status") or "").lower():
             continue
         results.append(v)
     return json.dumps({"data": provenance, "matches": len(results), "vessels": results}, indent=2)
 
 
 @mcp.tool()
-def vessels_near_port(port: str, radius_nm: float = 30.0) -> str:
+def vessels_near_port(
+    port: Annotated[str, Field(
+        description="Port name. One of: Port Klang, Tanjung Pelepas, Penang, "
+                    "Malacca, Langkawi. Case insensitive.")],
+    radius_nm: Annotated[float, Field(
+        gt=0, le=500,
+        description="Search radius in nautical miles, greater than 0 and at most "
+                    "500. The server only receives traffic for Malaysian waters, "
+                    "so a radius beyond that covers sea it never sees.")] = 30.0,
+) -> str:
     """List vessels within a radius (nautical miles) of a named port.
 
     Recognized ports: Port Klang, Tanjung Pelepas, Penang, Malacca, Langkawi.
@@ -186,7 +221,11 @@ def vessels_near_port(port: str, radius_nm: float = 30.0) -> str:
 
 
 @mcp.tool()
-def vessel_details(query: str) -> str:
+def vessel_details(
+    query: Annotated[str, Field(
+        description="A nine digit MMSI for an exact match, or part of a ship's "
+                    "name for a partial one. Must not be blank.")],
+) -> str:
     """Look up a single vessel by exact MMSI or by (partial) name.
 
     Returns JSON with a "data" block stating the source and a "vessel" record,
@@ -195,6 +234,13 @@ def vessel_details(query: str) -> str:
     reported that detail, not that the value is zero or unknown to the vessel.
     """
     q = query.strip().lower()
+    if not q:
+        _, provenance = get_vessels(require_position=False)
+        return json.dumps({
+            "data": provenance,
+            "error": "A vessel name or MMSI is required. Pass part of a ship's "
+                     "name, or its nine digit MMSI.",
+        })
     # A details lookup does not need a position, and AIS often gives a vessel's
     # identity before it gives its whereabouts.
     vessels, provenance = get_vessels(require_position=False)

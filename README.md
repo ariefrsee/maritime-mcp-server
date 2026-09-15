@@ -29,12 +29,18 @@ vessels_near_port("Tanjung Pelepas", 40)
 | Tool | What it answers |
 |------|-----------------|
 | `search_vessels(vessel_type, flag, status)` | which ships match a type, flag state or navigational status |
-| `vessels_near_port(port, radius_nm)` | what is within a radius of a named port, nearest first |
+| `vessels_near_port(port, radius_nm)` | what is within a radius of a named port, nearest first. Radius must be above 0 and at most 500 nautical miles |
 | `vessel_details(query)` | everything known about one ship, by MMSI or name |
 
 Resource `vessels://all` returns the whole current picture.
 
 Ports: Port Klang, Tanjung Pelepas, Penang, Malacca, Langkawi.
+
+Filters are case insensitive, partial, and ignore surrounding whitespace. Bad
+input is refused rather than answered: a radius outside the allowed range is
+rejected by the schema before the call runs, and a blank vessel query returns an
+error asking for a name or MMSI rather than reporting that nothing matched
+everything.
 
 ## Quick start
 
