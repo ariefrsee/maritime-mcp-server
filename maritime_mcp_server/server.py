@@ -9,6 +9,9 @@ a reusable MCP server.
 Run:
     python -m maritime_mcp_server.server    # stdio transport (for MCP clients)
 
+Targets the mcp 2.x MCPServer API. Version 1.x called this class FastMCP and
+served it from mcp.server.fastmcp.
+
 Wire into Claude Desktop by adding this server to claude_desktop_config.json —
 see the README.
 """
@@ -21,9 +24,10 @@ from functools import lru_cache
 from importlib.resources import files
 
 from contextlib import asynccontextmanager
+from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from pydantic import Field
 
 from .collector import Collector
@@ -58,7 +62,21 @@ async def _lifespan(_server):
         set_store(None)
 
 
-mcp = FastMCP("maritime-vessel-data", lifespan=_lifespan)
+def _own_version() -> str:
+    """This server's version, for the serverInfo a client sees on connect.
+
+    Under mcp 1.x this field reported the SDK's version, which was misleading.
+    Under 2.x it defaults to an empty string. Reporting the package's own version
+    is correct for the first time, but the lookup raises when the package is not
+    installed, which happens when running from a source checkout.
+    """
+    try:
+        return version("maritime-mcp-server")
+    except PackageNotFoundError:
+        return "0.0.0+source"
+
+
+mcp = MCPServer("maritime-vessel-data", version=_own_version(), lifespan=_lifespan)
 
 
 SNAPSHOT_DATE = "2026-07-20"

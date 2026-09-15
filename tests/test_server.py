@@ -205,7 +205,7 @@ async def test_an_in_range_radius_is_accepted(radius):
 async def test_the_schema_publishes_the_radius_bounds():
     """AC-3. A client should learn the valid range without having to call."""
     tools = {t.name: t for t in await S.mcp.list_tools()}
-    radius = tools["vessels_near_port"].inputSchema["properties"]["radius_nm"]
+    radius = tools["vessels_near_port"].input_schema["properties"]["radius_nm"]
     assert radius["exclusiveMinimum"] == 0
     assert radius["maximum"] == 500
     assert "nautical miles" in radius["description"]
@@ -217,7 +217,7 @@ async def test_every_tool_parameter_carries_a_description():
     one makes bad calls more likely rather than merely less documented."""
     undocumented = []
     for tool in await S.mcp.list_tools():
-        for name, prop in tool.inputSchema["properties"].items():
+        for name, prop in tool.input_schema["properties"].items():
             if not prop.get("description"):
                 undocumented.append(f"{tool.name}.{name}")
     assert undocumented == []

@@ -150,8 +150,8 @@ traffic that genuinely occurred rather than against invented input.
 | Websocket client and reconnect | `maritime_mcp_server/collector.py` |
 | Bundled fallback dataset | `maritime_mcp_server/data/vessels.json` |
 
-Built with the official [`mcp`](https://pypi.org/project/mcp/) SDK, currently
-pinned below 2.0 while the code targets the 1.x FastMCP API.
+Built with the official [`mcp`](https://pypi.org/project/mcp/) SDK, targeting
+the 2.x `MCPServer` API and pinned below 3.0.
 
 Every decision, test result and mistake made while building this is written down
 under `.shipline/`, one folder per piece of work, including the plans, manual

@@ -448,3 +448,44 @@ guardrails:
       call may already be a clean error at the boundary, and defending against
       it twice adds a second thing to keep in step.
 
+  - id: G21
+    status: active
+    title: Test both ends of a declared version range, not only the newest
+    reason: >
+      S04 declared mcp>=2,<3, which is a claim that the code works across every
+      2.x release. Only 2.2.0, the newest, had been tested. The suite was run
+      against 2.1.1 only by accident, because proving the upper bound worked
+      downgraded the environment. It passed, but nothing in the plan had thought
+      to check and no guardrail required it.
+    applies_to: [backend, infrastructure]
+    severity: medium
+    discovered_in: S04
+    discovered_on: 15/09/2026
+    injection: >
+      When you declare a dependency range, run the test suite against both the
+      lowest version you claim to support and the newest, not just whatever pip
+      happened to install. If testing the floor is impractical, narrow the
+      declared range to what you actually tested rather than claiming breadth you
+      have not verified.
+
+  - id: G22
+    status: active
+    title: Revalidate a plan by executing it when the code has moved underneath it
+    reason: >
+      S04's plan was written before four other stories landed, and claimed the
+      migration was two lines. Re-reading it suggested it was still accurate.
+      Executing it in a scratch copy and running the full test suite found a
+      renamed API attribute that broke two tests, before the story was approved.
+      Reading would not have found it: the rename is invisible in the server's
+      own source and invisible on the wire.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: high
+    discovered_in: S04
+    discovered_on: 15/09/2026
+    injection: >
+      When a plan predates changes to the code it touches, do not revalidate it
+      by reading. Perform the change in a scratch copy, run everything that
+      exists against it, and update the plan from what happened. A plan that
+      looks fine is not the same as a plan that still works, and the gap between
+      them is exactly where a deferred story hides its surprises.
+

@@ -2,14 +2,14 @@
 pipeline_state:
   milestone: M01
   title: Harden and package
-  state: in_progress       # planning | in_progress | verification | done
+  state: done              # planning | in_progress | verification | done
   branch: milestone/M01
   started_at: 2026-09-14
   due_date: TBD
   last_updated: 2026-09-14
   stories_total: 6
-  stories_done: 5
-  stories_open: 1
+  stories_done: 6
+  stories_open: 0
 ---
 
 # M01: Harden and package
@@ -25,7 +25,7 @@ Status legend: done, in progress, planned, blocked.
 |-------|-------|
 | Milestone | M01 |
 | Title | Harden and package |
-| State | In progress |
+| State | Done |
 | Branch | `milestone/M01` |
 | Started | 2026-09-14 |
 | Due | TBD |
@@ -64,7 +64,7 @@ Deferred deliberately. Write the reason, not just the item.
 | S03 | Live AIS collector | Done | M | High | `feat/S03-live-ais-collector` | [plan](S03-live-ais-collector/plan.md) |
 | S05 | A real test suite | Done | M | High | `feat/S05-test-suite` | [plan](S05-test-suite/plan.md) |
 | S06 | Validate tool inputs | Done | S | High | `feat/S06-input-validation` | [plan](S06-input-validation/plan.md) |
-| S04 | Migrate to the mcp 2.x MCPServer API | Planned | S | Medium | `feat/S04-migrate-to-mcp-2` | [plan](S04-migrate-to-mcp-2/plan.md) |
+| S04 | Migrate to the mcp 2.x MCPServer API | Done | S | Medium | `feat/S04-migrate-to-mcp-2` | [plan](S04-migrate-to-mcp-2/plan.md) |
 
 ## 5. Open risks
 
@@ -77,7 +77,7 @@ Deferred deliberately. Write the reason, not just the item.
 
 ## 6. Closing checklist
 
-- [ ] Every story is Done or explicitly moved out with a written reason
-- [ ] Every goal in section 2 is ticked or explicitly dropped
-- [ ] Every retro has been read and its guardrails are in `.shipline/guardrails.yaml`
-- [ ] `config.json` milestone history updated
+- [x] Every story is Done or explicitly moved out with a written reason
+- [x] Every goal in section 2 is ticked or explicitly dropped
+- [x] Every retro has been read and its guardrails are in `.shipline/guardrails.yaml`, 22 of them
+- [x] `config.json` milestone history updated
