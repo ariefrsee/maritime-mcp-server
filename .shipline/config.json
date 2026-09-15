@@ -48,7 +48,7 @@
     "guardrails_file": ".shipline/guardrails.yaml"
   },
   "active": {
-    "milestone": "M01",
+    "milestone": "M02",
     "story": null
   },
   "milestones": [
@@ -57,6 +57,12 @@
       "title": "Harden and package",
       "state": "done",
       "path": ".shipline/work/M01-harden-and-package/master-plan.md"
+    },
+    {
+      "id": "M02",
+      "title": "Efficient responses",
+      "state": "in_progress",
+      "path": ".shipline/work/M02-efficient-responses/master-plan.md"
     }
   ]
 }
