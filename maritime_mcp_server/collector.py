@@ -152,7 +152,9 @@ class Collector:
             "applied_immediately": resubscribed,
             "estimated_rate_per_s": rate,
             "budget_per_s": regions.STABLE_BUDGET_PER_S,
-            "within_budget": rate <= regions.STABLE_BUDGET_PER_S,
+            # Through the helper, not an inline comparison: rate is None when
+            # any selected region is unmeasured, and None <= float raises.
+            "within_budget": regions.within_budget(chosen),
         }
 
     @property

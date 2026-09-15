@@ -188,3 +188,17 @@ async def test_an_over_budget_selection_is_allowed_and_flagged():
     assert result["ok"] is True
     assert result["within_budget"] is False
     assert c.regions == ["mediterranean", "us-east"]
+
+
+@pytest.mark.anyio
+async def test_set_regions_survives_a_selection_nobody_has_measured():
+    """The first version compared the rate to the budget inline, so an
+    unmeasured region raised TypeError from None <= float and the whole call
+    failed. Every test used measured regions, so none of them saw it."""
+    unmeasured = next(k for k, v in regions.REGIONS.items() if v["rate_per_s"] is None)
+    c = Collector(VesselStore(), api_key="x")
+    result = await c.set_regions(f"malaysia,{unmeasured}")
+    assert result["ok"] is True
+    assert result["estimated_rate_per_s"] is None
+    assert result["within_budget"] is None
+    assert c.regions == ["malaysia", unmeasured]
