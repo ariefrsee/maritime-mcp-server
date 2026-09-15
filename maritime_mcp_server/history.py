@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS positions (
     lat         REAL,
     lon         REAL,
     sog         REAL,
+    cog         REAL,
+    heading     REAL,
     status      TEXT
 );
 CREATE INDEX IF NOT EXISTS positions_mmsi_time ON positions (mmsi, observed_at);
@@ -123,9 +125,21 @@ class VesselHistory:
             self._local.conn = conn
         return conn
 
+    # Columns added after the first release. A database written by an earlier
+    # version opens fine and is migrated in place, rather than failing on the
+    # first query against a column it has never heard of.
+    ADDED_COLUMNS = (("positions", "cog", "REAL"), ("positions", "heading", "REAL"))
+
+    def _migrate(self, conn: sqlite3.Connection) -> None:
+        for table, column, kind in self.ADDED_COLUMNS:
+            existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+            if column not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
+
     def _prepare(self, conn: sqlite3.Connection) -> None:
         with self._guard():
             conn.executescript(SCHEMA)
+            self._migrate(conn)
             if not self._in_memory:
                 # Readers do not block the writer, which matters because a tool
                 # call can land mid-ingest.
@@ -140,13 +154,14 @@ class VesselHistory:
 
     # --- writing -------------------------------------------------------------
 
-    def record_position(self, mmsi, observed_at, lat, lon, sog, status) -> None:
+    def record_position(self, mmsi, observed_at, lat, lon, sog, status,
+                        cog=None, heading=None) -> None:
         conn = self._connect()
         with self._guard():
             conn.execute(
-                "INSERT INTO positions (mmsi, observed_at, lat, lon, sog, status)"
-                " VALUES (?, ?, ?, ?, ?, ?)",
-                (str(mmsi), _iso(observed_at), lat, lon, sog, status),
+                "INSERT INTO positions (mmsi, observed_at, lat, lon, sog, cog, heading, status)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (str(mmsi), _iso(observed_at), lat, lon, sog, cog, heading, status),
             )
             conn.commit()
 
@@ -195,7 +210,7 @@ class VesselHistory:
             params.append(_iso(until))
         with self._guard():
             rows = conn.execute(
-                f"SELECT observed_at, lat, lon, sog, status FROM positions"
+                f"SELECT observed_at, lat, lon, sog, cog, heading, status FROM positions"
                 f" WHERE {clause} ORDER BY observed_at ASC",
                 params,
             ).fetchall()
@@ -205,7 +220,9 @@ class VesselHistory:
                 "lat": row[1],
                 "lon": row[2],
                 "speed_knots": row[3],
-                "status": row[4],
+                "course_degrees": row[4],
+                "heading_degrees": row[5],
+                "status": row[6],
             }
             for row in rows
         ]
@@ -220,8 +237,8 @@ class VesselHistory:
         with self._guard():
             rows = conn.execute(
                 """
-                SELECT p.mmsi, p.observed_at, p.lat, p.lon, p.sog, p.status,
-                       v.name, v.type, v.flag, v.length_m, v.destination
+                SELECT p.mmsi, p.observed_at, p.lat, p.lon, p.sog, p.cog, p.heading,
+                       p.status, v.name, v.type, v.flag, v.length_m, v.destination
                 FROM positions p
                 JOIN (
                     SELECT mmsi, MAX(observed_at) AS newest
@@ -238,12 +255,14 @@ class VesselHistory:
                 "lat": r[2],
                 "lon": r[3],
                 "speed_knots": r[4],
-                "status": r[5],
-                "name": r[6],
-                "type": r[7],
-                "flag": r[8],
-                "length_m": r[9],
-                "destination": r[10],
+                "course_degrees": r[5],
+                "heading_degrees": r[6],
+                "status": r[7],
+                "name": r[8],
+                "type": r[9],
+                "flag": r[10],
+                "length_m": r[11],
+                "destination": r[12],
             }
             for r in rows
         ]

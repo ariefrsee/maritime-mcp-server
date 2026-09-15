@@ -183,7 +183,8 @@ def test_identity_comes_from_the_metadata_envelope():
 def test_a_record_has_exactly_the_snapshot_keys():
     """The bundled snapshot is the contract. No key missing, no key extra."""
     expected = {"mmsi", "name", "type", "flag", "lat", "lon",
-                "speed_knots", "length_m", "destination", "nearest_port", "status"}
+                "speed_knots", "course_degrees", "heading_degrees",
+                "length_m", "destination", "nearest_port", "status"}
     assert set(m.to_record(mmsi="533012345")) == expected
 
 
@@ -222,10 +223,12 @@ def test_destination_free_text_is_passed_through_not_normalised():
 def test_position_fields_extracts_only_the_position_half():
     """Direct cover. to_record exercises it indirectly, which is not the same
     thing as knowing what it returns on its own."""
-    got = m.position_fields({"Latitude": 1.26, "Longitude": 103.79,
-                             "Sog": 12.5, "NavigationalStatus": 1})
-    assert got == {"lat": 1.26, "lon": 103.79,
-                   "speed_knots": 12.5, "status": "At anchor"}
+    got = m.position_fields({"Latitude": 1.26, "Longitude": 103.79, "Sog": 12.5,
+                             "Cog": 87.5, "TrueHeading": 90,
+                             "NavigationalStatus": 1})
+    assert got == {"lat": 1.26, "lon": 103.79, "speed_knots": 12.5,
+                   "course_degrees": 87.5, "heading_degrees": 90,
+                   "status": "At anchor"}
 
 
 def test_position_fields_on_a_class_b_body_reports_no_status():

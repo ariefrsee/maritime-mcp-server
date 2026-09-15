@@ -169,6 +169,7 @@ def test_the_captured_fixture_produces_a_known_vessel_count(filled_store):
 
 def test_every_fixture_record_has_the_full_key_set(filled_store):
     expected = {"mmsi", "name", "type", "flag", "lat", "lon", "speed_knots",
+                "course_degrees", "heading_degrees",
                 "length_m", "destination", "nearest_port", "status",
                 "position_age_seconds"}
     for rec in filled_store.records(now=CAPTURE_DAY):

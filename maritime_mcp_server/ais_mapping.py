@@ -267,6 +267,13 @@ def position_fields(body) -> dict:
         "lat": body.get("Latitude"),
         "lon": body.get("Longitude"),
         "speed_knots": speed_over_ground(body.get("Sog")),
+        # Course is where the vessel is going, heading is where the bow points.
+        # They differ in a current or a crosswind, and a chart symbol
+        # conventionally shows heading, so both are carried and the caller
+        # chooses. Neither ever defaults to 0: that is due north, a real
+        # heading, and inventing it would point a fleet the wrong way (G8).
+        "course_degrees": course_over_ground(body.get("Cog")),
+        "heading_degrees": true_heading(body.get("TrueHeading")),
         "status": navigational_status(body.get("NavigationalStatus")),
     }
 
@@ -295,6 +302,8 @@ def to_record(position=None, static=None, name=None, mmsi=None) -> dict:
         "lat": None,
         "lon": None,
         "speed_knots": None,
+        "course_degrees": None,
+        "heading_degrees": None,
         "length_m": None,
         "destination": None,
         "nearest_port": None,
