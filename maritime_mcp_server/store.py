@@ -17,8 +17,18 @@ import threading
 from datetime import datetime, timedelta, timezone
 
 from . import ais_mapping
+from .history import VesselHistory
 
 DEFAULT_MAX_AGE = timedelta(minutes=30)
+
+
+def _parse_iso(value):
+    """Read a timestamp written by the history layer."""
+    try:
+        parsed = datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 class VesselStore:
@@ -28,10 +38,49 @@ class VesselStore:
     every access takes the lock.
     """
 
-    def __init__(self, max_age: timedelta = DEFAULT_MAX_AGE):
+    def __init__(self, max_age: timedelta = DEFAULT_MAX_AGE, history: VesselHistory | None = None):
         self._max_age = max_age
         self._vessels: dict[str, dict] = {}
         self._lock = threading.Lock()
+        # History is optional so every existing test, and anyone using this as a
+        # live-only view, keeps working with no database at all.
+        self._history = history
+        if history is not None:
+            self._rehydrate()
+
+    def _rehydrate(self) -> None:
+        """Refill the cache from stored positions so a restart costs nothing.
+
+        AIS has no backfill, so a cold process would otherwise wait out the full
+        warm-up again. Only positions still inside the currency window are
+        restored: anything older would have been pruned a moment later anyway.
+        """
+        cutoff = datetime.now(timezone.utc) - self._max_age
+        for row in self._history.latest_positions(cutoff):
+            observed = _parse_iso(row["observed_at"])
+            if observed is None:
+                continue
+            body = {
+                "Latitude": row["lat"],
+                "Longitude": row["lon"],
+                "Sog": row["speed_knots"],
+            }
+            # Restored fields are already mapped, so they are carried beside
+            # the entry and overlaid in records() rather than being forced back
+            # into a fake AIS body that to_record would have to re-decode.
+            self._vessels[str(row["mmsi"])] = {
+                "position": body,
+                "static": None,
+                "name": row["name"],
+                "observed_at": observed,
+                "restored": {
+                    "status": row["status"],
+                    "type": row["type"],
+                    "flag": row["flag"],
+                    "length_m": row["length_m"],
+                    "destination": row["destination"],
+                },
+            }
 
     def ingest(self, message) -> bool:
         """Take one raw aisstream message. Returns True if it was stored.
@@ -73,18 +122,56 @@ class VesselStore:
                     entry["observed_at"] = observed
             else:
                 return False
+
+        # Written outside the lock: the dict is the hot path and must not wait
+        # on disk. The history is append-only, so ordering between writers does
+        # not matter.
+        if self._history is not None:
+            self._write_history(kind, body, ident, observed)
         return True
+
+    def _write_history(self, kind, body, ident, observed) -> None:
+        mmsi = ident["mmsi"]
+        if kind in ais_mapping.POSITION_TYPES:
+            fields = ais_mapping.position_fields(body)
+            self._history.record_position(
+                mmsi,
+                observed,
+                fields["lat"],
+                fields["lon"],
+                fields["speed_knots"],
+                fields["status"],
+            )
+        if ident["name"]:
+            self._history.record_identity(mmsi, observed, name=ident["name"])
+        if kind == "ShipStaticData":
+            static = ais_mapping.static_fields(body)
+            self._history.record_identity(
+                mmsi,
+                observed,
+                type=static.get("type"),
+                length_m=static.get("length_m"),
+                destination=static.get("destination"),
+                flag=ais_mapping.flag_from_mmsi(mmsi),
+            )
 
     def _expired(self, entry, now) -> bool:
         return now - entry["observed_at"] > self._max_age
 
     def prune(self, now=None) -> int:
-        """Drop entries older than max_age. Returns how many went."""
+        """Drop entries older than max_age. Returns how many went.
+
+        Also prunes stored history past its own, much longer, retention window.
+        The two are different questions: max_age decides whether a vessel is
+        current, retention decides whether its past is kept.
+        """
         now = now or datetime.now(timezone.utc)
         with self._lock:
             stale = [k for k, v in self._vessels.items() if self._expired(v, now)]
             for k in stale:
                 del self._vessels[k]
+        if self._history is not None:
+            self._history.prune(now)
         return len(stale)
 
     def records(self, now=None, require_position: bool = True) -> list[dict]:
@@ -115,6 +202,15 @@ class VesselStore:
                     name=entry["name"],
                     mmsi=mmsi,
                 )
+                # A restored vessel knows things its rebuilt AIS body cannot
+                # carry. Fill only the gaps: anything a live message has since
+                # supplied wins over what was read off disk.
+                restored = entry.get("restored")
+                if restored:
+                    for key, value in restored.items():
+                        if value is not None and record.get(key) is None:
+                            record[key] = value
+
                 age = now - entry["observed_at"]
                 record["position_age_seconds"] = (
                     int(age.total_seconds()) if entry["position"] else None

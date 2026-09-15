@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from importlib.resources import files
 
@@ -25,6 +26,7 @@ from contextlib import asynccontextmanager
 from mcp.server.fastmcp import FastMCP
 
 from .collector import Collector
+from .history import VesselHistory
 from .store import VesselStore
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
@@ -44,9 +46,11 @@ async def _lifespan(_server):
     Without an API key the collector declines to start and the server answers
     from its bundled snapshot, which is a supported mode rather than a failure.
     """
-    store = VesselStore()
+    history = VesselHistory()
+    store = VesselStore(history=history)
     collector = Collector(store)
     started = collector.start()
+    set_history(history)
     if started:
         set_store(store)
     try:
@@ -54,6 +58,8 @@ async def _lifespan(_server):
     finally:
         await collector.stop()
         set_store(None)
+        set_history(None)
+        history.close()
 
 
 mcp = FastMCP("maritime-vessel-data", lifespan=_lifespan)
@@ -70,6 +76,15 @@ def set_store(store) -> None:
     """Register the live vessel store. Called by the server lifespan hook."""
     global _store
     _store = store
+
+
+_history = None
+
+
+def set_history(history) -> None:
+    """Register the durable history. Called by the server lifespan hook."""
+    global _history
+    _history = history
 
 
 @lru_cache(maxsize=1)
@@ -239,6 +254,65 @@ def vessel_details(query: str) -> str:
             }
         )
     return json.dumps({"data": provenance, "vessel": matches[0]}, indent=2)
+
+
+@mcp.tool()
+def vessel_track(query: str, hours: float = 6) -> str:
+    """Where a vessel has been over the last few hours.
+
+    Returns JSON with a "data" block and a "track" list of positions, oldest
+    first. Each position is one AIS report that was actually received: the gaps
+    between them are real, and nothing is interpolated to fill them.
+
+    History only exists from the point this server started keeping it. An empty
+    track means nothing was heard, not that the vessel did not move.
+    """
+    if _history is None:
+        return json.dumps({
+            "data": {"source": "unavailable"},
+            "error": "History is not enabled on this server.",
+            "track": [],
+        })
+
+    hours = max(0.0, min(float(hours), 24 * 90))
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+
+    # Resolve a name to an MMSI through the same lookup the other tools use, so
+    # "track the Kowloon Express" behaves like "find the Kowloon Express".
+    q = query.strip()
+    mmsi = q if q.isdigit() else None
+    if mmsi is None:
+        vessels, _ = get_vessels(require_position=False)
+        matches = [v for v in vessels if q.lower() in (v.get("name") or "").lower()]
+        if not matches:
+            return json.dumps({
+                "data": {"source": "history"},
+                "error": f"No vessel found matching '{query}'.",
+                "track": [],
+            })
+        if len(matches) > 1:
+            return json.dumps({
+                "data": {"source": "history"},
+                "error": f"'{query}' matched {len(matches)} vessels; be more specific.",
+                "candidates": [{"mmsi": m.get("mmsi"), "name": m.get("name")} for m in matches],
+                "track": [],
+            })
+        mmsi = matches[0].get("mmsi")
+
+    track = _history.track(mmsi, since)
+    return json.dumps({
+        "data": {
+            "source": "history",
+            "mmsi": mmsi,
+            "hours": hours,
+            "position_count": len(track),
+            "note": (
+                "Positions are AIS reports as received. Gaps are real and "
+                "nothing between them is interpolated."
+            ),
+        },
+        "track": track,
+    }, indent=2)
 
 
 @mcp.resource("vessels://all")
