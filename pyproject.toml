@@ -18,11 +18,11 @@ classifiers = [
 ]
 
 # Upper bounds are deliberate, per guardrail G1.
-#   mcp: 2.x renamed FastMCP to MCPServer and moved mcp.server.fastmcp, which
-#        this code imports. See divergence D-1 in the S01 plan.
+#   mcp: targets the 2.x MCPServer API. The 1.x line called this class FastMCP.
+#        Migrated in S04; the <2 pin added in S01 was a holding position.
 #   websockets: 17.x is current and requires Python 3.11, which is why the
 #        requires-python floor above was raised from 3.10 in S03.
-dependencies = ["mcp>=1.2.0,<2", "websockets>=17,<18"]
+dependencies = ["mcp>=2,<3", "websockets>=17,<18"]
 
 [project.optional-dependencies]
 # Test only. A plain `pip install .` does not pull these.

@@ -403,3 +403,133 @@ guardrails:
       than a feeling, because a criterion a script can evaluate is the only kind
       that can catch you being wrong.
 
+  - id: G19
+    status: active
+    title: Normalise the same input the same way everywhere it is accepted
+    reason: >
+      vessels_near_port normalised its port name with strip and lower from the
+      first version, so " port klang " worked. The three filters on
+      search_vessels compared raw input, so " malaysia " returned zero vessels
+      when there are seven. Nobody decided that; the two were written at
+      different times. It is not a crash and it does not look wrong, so an AI
+      assistant would have relayed the empty result as fact. Every other defect
+      in this project announced itself.
+    applies_to: [backend, frontend, mobile, content, ops]
+    severity: high
+    discovered_in: S06
+    discovered_on: 15/09/2026
+    injection: >
+      When more than one entry point accepts the same kind of input, a name, a
+      code, a search term, normalise it in one shared function and call that
+      function from every one of them. Never let one path strip and lowercase
+      while another compares raw text. Before adding a second place that accepts
+      an input, check how the first one treats it, and write a test that passes
+      the same padded, mixed case value to both.
+
+  - id: G20
+    status: active
+    title: Probe the running system before planning validation, not the source
+    reason: >
+      S06 was planned as "validate every tool input". Reading the code suggested
+      a long list of crashes on bad types. Driving the running server over its
+      real protocol showed that the framework already rejected every one of them
+      before the code was reached, and that only three semantic defects
+      remained. Planning from the source would have produced a story half of
+      which reimplemented the framework.
+    applies_to: [backend, infrastructure]
+    severity: medium
+    discovered_in: S06
+    discovered_on: 15/09/2026
+    injection: >
+      Before planning validation, error handling or defensive code, send the bad
+      input to the running system the way a real caller would and record what
+      actually happens. Frameworks, serialisers and schema layers often handle
+      more than the function body suggests. What raises a TypeError in a direct
+      call may already be a clean error at the boundary, and defending against
+      it twice adds a second thing to keep in step.
+
+  - id: G21
+    status: active
+    title: Test both ends of a declared version range, not only the newest
+    reason: >
+      S04 declared mcp>=2,<3, which is a claim that the code works across every
+      2.x release. Only 2.2.0, the newest, had been tested. The suite was run
+      against 2.1.1 only by accident, because proving the upper bound worked
+      downgraded the environment. It passed, but nothing in the plan had thought
+      to check and no guardrail required it.
+    applies_to: [backend, infrastructure]
+    severity: medium
+    discovered_in: S04
+    discovered_on: 15/09/2026
+    injection: >
+      When you declare a dependency range, run the test suite against both the
+      lowest version you claim to support and the newest, not just whatever pip
+      happened to install. If testing the floor is impractical, narrow the
+      declared range to what you actually tested rather than claiming breadth you
+      have not verified.
+
+  - id: G22
+    status: active
+    title: Revalidate a plan by executing it when the code has moved underneath it
+    reason: >
+      S04's plan was written before four other stories landed, and claimed the
+      migration was two lines. Re-reading it suggested it was still accurate.
+      Executing it in a scratch copy and running the full test suite found a
+      renamed API attribute that broke two tests, before the story was approved.
+      Reading would not have found it: the rename is invisible in the server's
+      own source and invisible on the wire.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: high
+    discovered_in: S04
+    discovered_on: 15/09/2026
+    injection: >
+      When a plan predates changes to the code it touches, do not revalidate it
+      by reading. Perform the change in a scratch copy, run everything that
+      exists against it, and update the plan from what happened. A plan that
+      looks fine is not the same as a plan that still works, and the gap between
+      them is exactly where a deferred story hides its surprises.
+
+  - id: G23
+    status: active
+    title: Measure where the cost is before designing a fix for it
+    reason: >
+      S07 began as a suggestion to redesign the tool API: return summaries, add
+      a detail lookup, add a fourth tool. Measuring the response by field first
+      showed that 29 percent of it was indentation, 12 percent was coordinates
+      printed to sixteen significant figures, and 15 percent was two fields the
+      caller already had. Compact serialisation and rounding got half the saving
+      with no new surface area, and the summary tool was dropped from the plan
+      before it was written.
+    applies_to: [backend, frontend, mobile, infrastructure]
+    severity: high
+    discovered_in: S07
+    discovered_on: 15/09/2026
+    injection: >
+      Before planning any performance, size or cost work, measure where the cost
+      actually is and break it down by component. Do not design from an
+      impression of what is expensive, including your own architectural
+      instinct. The fix that first comes to mind is usually structural, and the
+      measurement often shows the cost is somewhere cheaper to address.
+
+  - id: G24
+    status: active
+    title: Report the cost an optimisation adds, in the same units as the saving
+    reason: >
+      S07 cut a typical response by 81 percent while growing the tool schema by
+      29 percent, because two tools gained a parameter with a description. The
+      growth was found by reading a per response table, not because anything
+      required looking for it, and the first instinct was to quote the 81
+      percent and move on. A per call saving and a per session cost are
+      different units, and quoting only the flattering one turns engineering
+      into marketing.
+    applies_to: [backend, frontend, mobile, infrastructure, ops]
+    severity: medium
+    discovered_in: S07
+    discovered_on: 15/09/2026
+    injection: >
+      When you report an optimisation, report what it cost as well as what it
+      saved, measured the same way. State the units and the frequency: a saving
+      per call against a cost per session is not a like for like comparison
+      until you show where they break even. If the change adds nothing, say that
+      you checked.
+
