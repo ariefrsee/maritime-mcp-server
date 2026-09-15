@@ -55,7 +55,7 @@
     {
       "id": "M01",
       "title": "Harden and package",
-      "state": "in_progress",
+      "state": "done",
       "path": ".shipline/work/M01-harden-and-package/master-plan.md"
     }
   ]
