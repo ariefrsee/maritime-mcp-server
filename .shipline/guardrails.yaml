@@ -533,3 +533,56 @@ guardrails:
       until you show where they break even. If the change adds nothing, say that
       you checked.
 
+  - id: G25
+    status: active
+    title: Probing a third party service spends the production credential's quota
+    reason: >
+      S14 measured eighteen regions by opening a connection to aisstream for
+      each one. After five, every subsequent connection was refused inside
+      three seconds with code 1006, and the runs recorded 0.00 messages a
+      second. Read as data those numbers say thirteen regions have no traffic,
+      which is false; they were the rate limiter. Worse, the same API key runs
+      production. The live service survived only because an established
+      connection is exempt from the limit: had the collector needed to
+      reconnect during that window, ais.ariefrse.my would have gone down
+      because of a measurement run.
+    applies_to: [backend, infrastructure, ops]
+    severity: high
+    discovered_in: S14
+    discovered_on: 15/09/2026
+    injection: >
+      Before running any sweep against an external service, check whether the
+      credential you are about to use is the one production depends on, and say
+      so out loud. Assume connection attempts, not just messages, are rationed.
+      Space the probes, cap how many you will make, and after the run check the
+      live service before trusting any of the numbers. A result that looks like
+      an absence of data is the first thing to re-examine: a throttled probe and
+      an empty region are indistinguishable in the output and only one of them
+      is true.
+
+  - id: G26
+    status: active
+    title: Exercise the unknown case through every entry point that can meet it
+    reason: >
+      regions.rate_for returns None when a selection contains a region nobody
+      has measured, which was the whole point of writing it. Collector.set_regions
+      then compared that value to the budget inline, rate <= STABLE_BUDGET_PER_S,
+      so an unmeasured region raised TypeError and the entire call failed. Nine
+      tests covered set_regions and every one of them selected measured regions,
+      so none of them ever produced the None the function was designed around.
+      The bug was found by driving the real endpoint with a region picked at
+      random, not by the suite.
+    applies_to: [backend, frontend, mobile, content, ops]
+    severity: high
+    discovered_in: S14
+    discovered_on: 15/09/2026
+    injection: >
+      When a function can return null, unknown or not-applicable, list every
+      caller and write a test that drives each one with that value. Do not
+      assume a caller handles it because the producer was carefully written to
+      emit it: the producer and the consumer are usually written at different
+      moments and the consumer is where the comparison happens. Where a helper
+      exists to answer the question safely, call the helper rather than
+      repeating its comparison inline, and treat a duplicated comparison as the
+      smell that it is.
+

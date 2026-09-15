@@ -48,8 +48,8 @@
     "guardrails_file": ".shipline/guardrails.yaml"
   },
   "active": {
-    "milestone": "M02",
-    "story": null
+    "milestone": "M03",
+    "story": "S14"
   },
   "milestones": [
     {
@@ -63,6 +63,12 @@
       "title": "Efficient responses",
       "state": "in_progress",
       "path": ".shipline/work/M02-efficient-responses/master-plan.md"
+    },
+    {
+      "id": "M03",
+      "title": "Beyond Malaysian waters",
+      "state": "in_progress",
+      "path": ".shipline/work/M03-beyond-malaysian-waters/master-plan.md"
     }
   ]
 }
