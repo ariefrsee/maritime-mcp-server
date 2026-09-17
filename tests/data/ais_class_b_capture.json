@@ -1,0 +1,2977 @@
+[
+ {
+  "MetaData": {
+   "MMSI": 574561623,
+   "MMSI_String": 574561623,
+   "ShipName": "CAU GU NHAT SINH    ",
+   "latitude": 14.56951,
+   "longitude": 109.06198,
+   "time_utc": "2026-09-17 03:00:11.970935123 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 353.6,
+    "Dimension": {
+     "A": 16,
+     "B": 10,
+     "C": 4,
+     "D": 2
+    },
+    "Dte": false,
+    "FixType": 0,
+    "Latitude": 14.569510000000001,
+    "Longitude": 109.06198333333333,
+    "MessageID": 19,
+    "Name": "CAU GU NHAT SINH    ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 10,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 574561623,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416919601,
+   "MMSI_String": 416919601,
+   "ShipName": "",
+   "latitude": 25.20435,
+   "longitude": 121.69229,
+   "time_utc": "2026-09-17 03:00:12.726932322 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 29,
+    "Dimension": {
+     "A": 5,
+     "B": 5,
+     "C": 5,
+     "D": 5
+    },
+    "Dte": false,
+    "FixType": 1,
+    "Latitude": 25.204348333333332,
+    "Longitude": 121.69229166666668,
+    "MessageID": 19,
+    "Name": "CTS-9196-76%",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 456,
+    "Type": 0,
+    "UserID": 416919601,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 574112214,
+   "MMSI_String": 574112214,
+   "ShipName": "27 LR TD: 7027 A2   ",
+   "latitude": 14.57122,
+   "longitude": 109.07693,
+   "time_utc": "2026-09-17 03:00:15.972639016 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 44,
+    "Dimension": {
+     "A": 16,
+     "B": 10,
+     "C": 4,
+     "D": 2
+    },
+    "Dte": false,
+    "FixType": 1,
+    "Latitude": 14.571223333333334,
+    "Longitude": 109.07692833333334,
+    "MessageID": 19,
+    "Name": "27 LR TD: 7027 A2   ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 1,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 14,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 574112214,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416012992,
+   "MMSI_String": 416012992,
+   "ShipName": "",
+   "latitude": 25.13726,
+   "longitude": 121.8025,
+   "time_utc": "2026-09-17 03:00:17.894953063 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.13726,
+    "Longitude": 121.80249666666667,
+    "MessageID": 19,
+    "Name": "SAN HER FA NO.16    ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 17,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416012992,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 413901351,
+   "MMSI_String": 413901351,
+   "ShipName": "HONG AN TAI 818     ",
+   "latitude": 22.31052,
+   "longitude": 114.12038,
+   "time_utc": "2026-09-17 03:00:25.140460422 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 241,
+    "Dimension": {
+     "A": 3,
+     "B": 47,
+     "C": 7,
+     "D": 9
+    },
+    "Dte": false,
+    "FixType": 0,
+    "Latitude": 22.310515000000002,
+    "Longitude": 114.12038166666666,
+    "MessageID": 19,
+    "Name": "HONG AN TAI 818     ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 1,
+    "Spare3": 7,
+    "Timestamp": 22,
+    "TrueHeading": 241,
+    "Type": 70,
+    "UserID": 413901351,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416008448,
+   "MMSI_String": 416008448,
+   "ShipName": "",
+   "latitude": 25.25097,
+   "longitude": 121.72414,
+   "time_utc": "2026-09-17 03:00:25.57994296 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 40.4,
+    "Dimension": {
+     "A": 16,
+     "B": 10,
+     "C": 3,
+     "D": 3
+    },
+    "Dte": false,
+    "FixType": 1,
+    "Latitude": 25.250968333333333,
+    "Longitude": 121.72414166666667,
+    "MessageID": 19,
+    "Name": "YU  FA  NO 123      ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 7,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 24,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416008448,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416006576,
+   "MMSI_String": 416006576,
+   "ShipName": "",
+   "latitude": 25.18915,
+   "longitude": 121.78486,
+   "time_utc": "2026-09-17 03:00:41.206625635 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 274,
+    "Dimension": {
+     "A": 8,
+     "B": 4,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": false,
+    "FixType": 1,
+    "Latitude": 25.189153333333334,
+    "Longitude": 121.78486,
+    "MessageID": 19,
+    "Name": "JAAN SHING NO.6     ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 39,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416006576,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525201398,
+   "MMSI_String": 525201398,
+   "ShipName": "TB JOHAN JAYA 162",
+   "latitude": -2.33716,
+   "longitude": 104.9154,
+   "time_utc": "2026-09-17 03:00:47.987161038 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 190.5,
+    "Dimension": {
+     "A": 5,
+     "B": 22,
+     "C": 4,
+     "D": 4
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": -2.3371633333333337,
+    "Longitude": 104.91540333333334,
+    "MessageID": 19,
+    "Name": "TB JOHAN JAYA 162",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 6,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 47,
+    "TrueHeading": 511,
+    "Type": 52,
+    "UserID": 525201398,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416016916,
+   "MMSI_String": 416016916,
+   "ShipName": "",
+   "latitude": 25.14625,
+   "longitude": 121.79355,
+   "time_utc": "2026-09-17 03:00:48.479137948 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.146251666666668,
+    "Longitude": 121.793545,
+    "MessageID": 19,
+    "Name": "JENN YUAN           ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 48,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416016916,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 574098019,
+   "MMSI_String": 574098019,
+   "ShipName": "",
+   "latitude": 14.57136,
+   "longitude": 109.06303,
+   "time_utc": "2026-09-17 03:00:51.10498087 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 353.9,
+    "Dimension": {
+     "A": 16,
+     "B": 10,
+     "C": 4,
+     "D": 2
+    },
+    "Dte": false,
+    "FixType": 1,
+    "Latitude": 14.571361666666666,
+    "Longitude": 109.06303,
+    "MessageID": 19,
+    "Name": "LRCHA19TD7833A19    ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 49,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 574098019,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416001003,
+   "MMSI_String": 416001003,
+   "ShipName": "LONG TSAIR FWU 11",
+   "latitude": 25.25253,
+   "longitude": 121.69275,
+   "time_utc": "2026-09-17 03:00:55.365915271 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 117.7,
+    "Dimension": {
+     "A": 10,
+     "B": 6,
+     "C": 2,
+     "D": 2
+    },
+    "Dte": true,
+    "FixType": 0,
+    "Latitude": 25.252533333333336,
+    "Longitude": 121.69274999999999,
+    "MessageID": 19,
+    "Name": "LONG TSAIR FWU 11",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 3,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416001003,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 952477611,
+   "MMSI_String": 952477611,
+   "ShipName": "",
+   "latitude": 25.1759,
+   "longitude": 121.73447,
+   "time_utc": "2026-09-17 03:00:55.552588424 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 284.3,
+    "Dimension": {
+     "A": 0,
+     "B": 0,
+     "C": 0,
+     "D": 0
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.175895,
+    "Longitude": 121.73447333333334,
+    "MessageID": 19,
+    "Name": "HSIEH YUN CHU_99%   ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 284,
+    "Type": 0,
+    "UserID": 952477611,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525601570,
+   "MMSI_String": 525601570,
+   "ShipName": "SAMUDERA MAKMUR 06",
+   "latitude": -6.11117,
+   "longitude": 106.8731,
+   "time_utc": "2026-09-17 03:00:58.381659198 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 291.7,
+    "Dimension": {
+     "A": 75,
+     "B": 22,
+     "C": 10,
+     "D": 6
+    },
+    "Dte": true,
+    "FixType": 0,
+    "Latitude": -6.1111716666666664,
+    "Longitude": 106.87310333333333,
+    "MessageID": 19,
+    "Name": "SAMUDERA MAKMUR 06",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "Type": 70,
+    "UserID": 525601570,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013812,
+   "MMSI_String": 416013812,
+   "ShipName": "",
+   "latitude": 25.16036,
+   "longitude": 121.73383,
+   "time_utc": "2026-09-17 03:01:02.30010771 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.160363333333333,
+    "Longitude": 121.73383166666667,
+    "MessageID": 19,
+    "Name": "HAN LUNG            ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 1,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416013812,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013051,
+   "MMSI_String": 416013051,
+   "ShipName": "",
+   "latitude": 25.18969,
+   "longitude": 121.78425,
+   "time_utc": "2026-09-17 03:01:03.506262461 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.189694999999997,
+    "Longitude": 121.78424833333334,
+    "MessageID": 19,
+    "Name": "HARNG WOEI          ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 3,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416013051,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013007,
+   "MMSI_String": 416013007,
+   "ShipName": "",
+   "latitude": 25.14664,
+   "longitude": 121.79335,
+   "time_utc": "2026-09-17 03:01:04.472600848 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.146641666666667,
+    "Longitude": 121.79334833333334,
+    "MessageID": 19,
+    "Name": "TAIR YIH GUANG      ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 4,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416013007,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 96082542,
+   "MMSI_String": 96082542,
+   "ShipName": "",
+   "latitude": 22.28448,
+   "longitude": 114.22805,
+   "time_utc": "2026-09-17 03:01:04.871895299 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 235,
+    "Dimension": {
+     "A": 0,
+     "B": 0,
+     "C": 0,
+     "D": 0
+    },
+    "Dte": false,
+    "FixType": 0,
+    "Latitude": 22.28448,
+    "Longitude": 114.22804833333333,
+    "MessageID": 19,
+    "Name": "NET-82542-84%       ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 0,
+    "TrueHeading": 511,
+    "Type": 0,
+    "UserID": 96082542,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416009985,
+   "MMSI_String": 416009985,
+   "ShipName": "",
+   "latitude": 25.15254,
+   "longitude": 121.76927,
+   "time_utc": "2026-09-17 03:01:06.860844016 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 253.9,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.152536666666666,
+    "Longitude": 121.76926666666667,
+    "MessageID": 19,
+    "Name": "SHUAY SHUAY         ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 1,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 6,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416009985,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416001046,
+   "MMSI_String": 416001046,
+   "ShipName": "",
+   "latitude": 25.32885,
+   "longitude": 121.67982,
+   "time_utc": "2026-09-17 03:01:09.175114719 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 205.4,
+    "Dimension": {
+     "A": 16,
+     "B": 5,
+     "C": 2,
+     "D": 3
+    },
+    "Dte": true,
+    "FixType": 0,
+    "Latitude": 25.32885,
+    "Longitude": 121.67981666666667,
+    "MessageID": 19,
+    "Name": "JIN DA FA",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 8,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416001046,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416018358,
+   "MMSI_String": 416018358,
+   "ShipName": "",
+   "latitude": 25.14634,
+   "longitude": 121.79334,
+   "time_utc": "2026-09-17 03:01:09.476208024 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.146340000000002,
+    "Longitude": 121.79334,
+    "MessageID": 19,
+    "Name": "WANN LAI NO.2       ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 9,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416018358,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525001014,
+   "MMSI_String": 525001014,
+   "ShipName": "KN TRISULA P 111    ",
+   "latitude": -6.09619,
+   "longitude": 106.86189,
+   "time_utc": "2026-09-17 03:01:13.905888181 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 114.3,
+    "Dimension": {
+     "A": 31,
+     "B": 30,
+     "C": 5,
+     "D": 4
+    },
+    "Dte": true,
+    "FixType": 0,
+    "Latitude": -6.096193333333333,
+    "Longitude": 106.86189333333333,
+    "MessageID": 19,
+    "Name": "KN TRISULA P 111    ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "Type": 55,
+    "UserID": 525001014,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013579,
+   "MMSI_String": 416013579,
+   "ShipName": "",
+   "latitude": 25.15509,
+   "longitude": 121.77049,
+   "time_utc": "2026-09-17 03:01:16.858056703 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.155093333333333,
+    "Longitude": 121.77048666666666,
+    "MessageID": 19,
+    "Name": "JENN FA NO.16       ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 16,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416013579,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013938,
+   "MMSI_String": 416013938,
+   "ShipName": "",
+   "latitude": 25.19092,
+   "longitude": 121.78135,
+   "time_utc": "2026-09-17 03:01:17.468917462 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 0,
+    "Dimension": {
+     "A": 1,
+     "B": 1,
+     "C": 1,
+     "D": 1
+    },
+    "Dte": true,
+    "FixType": 1,
+    "Latitude": 25.190921666666668,
+    "Longitude": 121.78134666666666,
+    "MessageID": 19,
+    "Name": "RYH SHENQ NO.88     ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 17,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416013938,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416003633,
+   "MMSI_String": 416003633,
+   "ShipName": "GUO AN NO.6",
+   "latitude": 25.14563,
+   "longitude": 121.7936,
+   "time_utc": "2026-09-17 03:01:25.795149261 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 92.1,
+    "Dimension": {
+     "A": 0,
+     "B": 0,
+     "C": 0,
+     "D": 0
+    },
+    "Dte": true,
+    "FixType": 0,
+    "Latitude": 25.145631666666667,
+    "Longitude": 121.79360166666667,
+    "MessageID": 19,
+    "Name": "GUO AN NO.6",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Spare3": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "Type": 30,
+    "UserID": 416003633,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 412481575,
+   "MMSI_String": 412481575,
+   "ShipName": "",
+   "latitude": 22.28443,
+   "longitude": 114.22673,
+   "time_utc": "2026-09-17 03:01:26.098793114 +0000 UTC"
+  },
+  "MessageType": "ExtendedClassBPositionReport",
+  "Message": {
+   "ExtendedClassBPositionReport": {
+    "AssignedMode": false,
+    "Cog": 14.4,
+    "Dimension": {
+     "A": 13,
+     "B": 10,
+     "C": 3,
+     "D": 4
+    },
+    "Dte": false,
+    "FixType": 0,
+    "Latitude": 22.28443,
+    "Longitude": 114.22673166666667,
+    "MessageID": 19,
+    "Name": "SHEN NAN 3098       ",
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 1,
+    "Spare3": 7,
+    "Timestamp": 25,
+    "TrueHeading": 14,
+    "Type": 30,
+    "UserID": 412481575,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416018007,
+   "MMSI_String": 416018007,
+   "ShipName": "JAU SHENG NO.168",
+   "latitude": 25.14667,
+   "longitude": 121.79288,
+   "time_utc": "2026-09-17 03:00:08.740276956 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 0,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 25.146665,
+    "Longitude": 121.79287666666667,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 8,
+    "TrueHeading": 511,
+    "UserID": 416018007,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 563023010,
+   "MMSI_String": 563023010,
+   "ShipName": "PROFIT BRILLIANCE",
+   "latitude": 1.26387,
+   "longitude": 103.83121,
+   "time_utc": "2026-09-17 03:00:10.361558247 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": false,
+    "Cog": 359.2,
+    "CommunicationState": 196614,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 1.2638666666666665,
+    "Longitude": 103.831205,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0.1,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 9,
+    "TrueHeading": 359,
+    "UserID": 563023010,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431199000,
+   "MMSI_String": 431199000,
+   "ShipName": "KAIYOUMARU NO.58    ",
+   "latitude": 33.73678,
+   "longitude": 136.1523,
+   "time_utc": "2026-09-17 03:00:11.698386786 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 36.8,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 33.736775,
+    "Longitude": 136.15230333333335,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 10.9,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 12,
+    "TrueHeading": 511,
+    "UserID": 431199000,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 440059220,
+   "MMSI_String": 440059220,
+   "ShipName": "",
+   "latitude": 37.45588,
+   "longitude": 126.57986,
+   "time_utc": "2026-09-17 03:00:11.73990924 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 98.2,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 37.45587666666667,
+    "Longitude": 126.57985833333333,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 8.3,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 10,
+    "TrueHeading": 98,
+    "UserID": 440059220,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431028089,
+   "MMSI_String": 431028089,
+   "ShipName": "NO.8 TOUKOUMARU     ",
+   "latitude": 35.63495,
+   "longitude": 139.76155,
+   "time_utc": "2026-09-17 03:00:12.863605964 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 184.9,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 35.634946666666664,
+    "Longitude": 139.76155,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 11.2,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 12,
+    "TrueHeading": 183,
+    "UserID": 431028089,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431009269,
+   "MMSI_String": 431009269,
+   "ShipName": "HOKUTO              ",
+   "latitude": 35.60953,
+   "longitude": 139.79483,
+   "time_utc": "2026-09-17 03:00:14.053289625 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 30.2,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 35.60952666666667,
+    "Longitude": 139.79482833333336,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 2,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 14,
+    "TrueHeading": 511,
+    "UserID": 431009269,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525432113,
+   "MMSI_String": 525432113,
+   "ShipName": "",
+   "latitude": -6.09666,
+   "longitude": 106.89855,
+   "time_utc": "2026-09-17 03:00:16.483330527 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": true,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": false,
+    "Cog": 93.9,
+    "CommunicationState": 23244,
+    "CommunicationStateIsItdma": false,
+    "Latitude": -6.096658333333334,
+    "Longitude": 106.89855166666666,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 7.5,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 14,
+    "TrueHeading": 511,
+    "UserID": 525432113,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416004997,
+   "MMSI_String": 416004997,
+   "ShipName": "XIN FENG YING NO.68",
+   "latitude": 25.14727,
+   "longitude": 121.94901,
+   "time_utc": "2026-09-17 03:00:16.524908447 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 150.7,
+    "CommunicationState": 0,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 25.147271666666665,
+    "Longitude": 121.94900666666668,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 7.2,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 15,
+    "TrueHeading": 511,
+    "UserID": 416004997,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013579,
+   "MMSI_String": 416013579,
+   "ShipName": "",
+   "latitude": 25.15509,
+   "longitude": 121.77051,
+   "time_utc": "2026-09-17 03:00:16.817766013 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 292.5,
+    "CommunicationState": 0,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 25.155091666666667,
+    "Longitude": 121.77050833333332,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 0.5,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 16,
+    "TrueHeading": 511,
+    "UserID": 416013579,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431018933,
+   "MMSI_String": 431018933,
+   "ShipName": "NO.7,,DAIFUKU       ",
+   "latitude": 39.76943,
+   "longitude": 140.03249,
+   "time_utc": "2026-09-17 03:00:17.366583458 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 272.3,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 39.76943333333334,
+    "Longitude": 140.03249,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 14,
+    "TrueHeading": 511,
+    "UserID": 431018933,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416003566,
+   "MMSI_String": 416003566,
+   "ShipName": "YU FA 286",
+   "latitude": 25.33329,
+   "longitude": 121.61569,
+   "time_utc": "2026-09-17 03:00:17.457651728 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 126.7,
+    "CommunicationState": 0,
+    "CommunicationStateIsItdma": false,
+    "Latitude": 25.333285,
+    "Longitude": 121.61569333333334,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 5.2,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "UserID": 416003566,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525300267,
+   "MMSI_String": 525300267,
+   "ShipName": "TB NELLY 37         ",
+   "latitude": -2.2672,
+   "longitude": 104.92255,
+   "time_utc": "2026-09-17 03:00:17.882021646 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": true,
+    "ClassBDsc": true,
+    "ClassBMsg22": true,
+    "ClassBUnit": true,
+    "Cog": 341.4,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": -2.2671983333333334,
+    "Longitude": 104.92254666666666,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 1.4,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 16,
+    "TrueHeading": 511,
+    "UserID": 525300267,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525301543,
+   "MMSI_String": 525301543,
+   "ShipName": "TB WAHANA 2406      ",
+   "latitude": -2.36995,
+   "longitude": 104.90732,
+   "time_utc": "2026-09-17 03:00:18.367239399 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": true,
+    "ClassBUnit": true,
+    "Cog": 327.3,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": -2.3699483333333333,
+    "Longitude": 104.907315,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 1.3,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 17,
+    "TrueHeading": 511,
+    "UserID": 525301543,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 563081020,
+   "MMSI_String": 563081020,
+   "ShipName": "PENGUIN RECHARGE    ",
+   "latitude": 1.22507,
+   "longitude": 103.77909,
+   "time_utc": "2026-09-17 03:00:18.630231723 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": true,
+    "ClassBUnit": false,
+    "Cog": 268.3,
+    "CommunicationState": 0,
+    "CommunicationStateIsItdma": false,
+    "Latitude": 1.225065,
+    "Longitude": 103.77909166666667,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 0.6,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 18,
+    "TrueHeading": 258,
+    "UserID": 563081020,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416013938,
+   "MMSI_String": 416013938,
+   "ShipName": "",
+   "latitude": 25.19094,
+   "longitude": 121.78137,
+   "time_utc": "2026-09-17 03:00:18.872930514 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 0,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 25.19094,
+    "Longitude": 121.78137166666667,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0.7,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 18,
+    "TrueHeading": 511,
+    "UserID": 416013938,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 413901351,
+   "MMSI_String": 413901351,
+   "ShipName": "HONG AN TAI 818     ",
+   "latitude": 22.31052,
+   "longitude": 114.12039,
+   "time_utc": "2026-09-17 03:00:18.898914027 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": true,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": false,
+    "Cog": 250.2,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": false,
+    "Latitude": 22.31051666666667,
+    "Longitude": 114.120385,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0.1,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 16,
+    "TrueHeading": 250,
+    "UserID": 413901351,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 306400000,
+   "MMSI_String": 306400000,
+   "ShipName": "TB.CAMAR 2          ",
+   "latitude": -2.18498,
+   "longitude": 105.12741,
+   "time_utc": "2026-09-17 03:00:19.417633971 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": true,
+    "ClassBDsc": true,
+    "ClassBMsg22": true,
+    "ClassBUnit": true,
+    "Cog": 115.9,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": -2.1849783333333335,
+    "Longitude": 105.12740833333334,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 2.8,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 18,
+    "TrueHeading": 511,
+    "UserID": 306400000,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416001046,
+   "MMSI_String": 416001046,
+   "ShipName": "",
+   "latitude": 25.33043,
+   "longitude": 121.68083,
+   "time_utc": "2026-09-17 03:00:19.562320173 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": true,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 212.3,
+    "CommunicationState": 0,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 25.330433333333335,
+    "Longitude": 121.68082666666666,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 1,
+    "Sog": 7.6,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 60,
+    "TrueHeading": 511,
+    "UserID": 416001046,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431011112,
+   "MMSI_String": 431011112,
+   "ShipName": "HAMASHIO            ",
+   "latitude": 35.49352,
+   "longitude": 139.97061,
+   "time_utc": "2026-09-17 03:00:19.771234234 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 237.4,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 35.493515,
+    "Longitude": 139.97061333333335,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 13.6,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 18,
+    "TrueHeading": 511,
+    "UserID": 431011112,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525400753,
+   "MMSI_String": 525400753,
+   "ShipName": "",
+   "latitude": -2.16933,
+   "longitude": 104.94416,
+   "time_utc": "2026-09-17 03:00:20.099853338 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": true,
+    "ClassBDsc": true,
+    "ClassBMsg22": true,
+    "ClassBUnit": true,
+    "Cog": 184.4,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": -2.1693316666666664,
+    "Longitude": 104.94415666666667,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 19,
+    "TrueHeading": 511,
+    "UserID": 525400753,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431501679,
+   "MMSI_String": 431501679,
+   "ShipName": "MARIN               ",
+   "latitude": 34.10421,
+   "longitude": 132.99139,
+   "time_utc": "2026-09-17 03:00:20.456712931 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 314.6,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 34.104205,
+    "Longitude": 132.99138666666667,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 7.5,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 19,
+    "TrueHeading": 511,
+    "UserID": 431501679,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525012290,
+   "MMSI_String": 525012290,
+   "ShipName": "",
+   "latitude": -2.35647,
+   "longitude": 104.90889,
+   "time_utc": "2026-09-17 03:00:20.541477704 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": true,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": false,
+    "Cog": 3.9,
+    "CommunicationState": 33527,
+    "CommunicationStateIsItdma": false,
+    "Latitude": -2.356465,
+    "Longitude": 104.90889333333332,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 0.8,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 18,
+    "TrueHeading": 511,
+    "UserID": 525012290,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 100021674,
+   "MMSI_String": 100021674,
+   "ShipName": "",
+   "latitude": 13.70674,
+   "longitude": 100.5656,
+   "time_utc": "2026-09-17 03:00:22.009510463 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": false,
+    "ClassBDsc": false,
+    "ClassBMsg22": false,
+    "ClassBUnit": false,
+    "Cog": 0,
+    "CommunicationState": 196614,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 13.706735,
+    "Longitude": 100.56560333333333,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": false,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 21,
+    "TrueHeading": 0,
+    "UserID": 100021674,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525901474,
+   "MMSI_String": 525901474,
+   "ShipName": "PACIFIC FIFTY ONE ;)",
+   "latitude": -10.19374,
+   "longitude": 123.48882,
+   "time_utc": "2026-09-17 03:00:22.867892485 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": false,
+    "ClassBDisplay": true,
+    "ClassBDsc": true,
+    "ClassBMsg22": true,
+    "ClassBUnit": true,
+    "Cog": 207.9,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": -10.193736666666666,
+    "Longitude": 123.48881666666666,
+    "MessageID": 18,
+    "PositionAccuracy": true,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 0.4,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 22,
+    "TrueHeading": 511,
+    "UserID": 525901474,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431300447,
+   "MMSI_String": 431300447,
+   "ShipName": "",
+   "latitude": 35.5834,
+   "longitude": 139.9604,
+   "time_utc": "2026-09-17 03:00:23.120577382 +0000 UTC"
+  },
+  "MessageType": "StandardClassBPositionReport",
+  "Message": {
+   "StandardClassBPositionReport": {
+    "AssignedMode": false,
+    "ClassBBand": true,
+    "ClassBDisplay": false,
+    "ClassBDsc": true,
+    "ClassBMsg22": false,
+    "ClassBUnit": true,
+    "Cog": 343.4,
+    "CommunicationState": 393222,
+    "CommunicationStateIsItdma": true,
+    "Latitude": 35.583398333333335,
+    "Longitude": 139.9604,
+    "MessageID": 18,
+    "PositionAccuracy": false,
+    "Raim": true,
+    "RepeatIndicator": 0,
+    "Sog": 0,
+    "Spare1": 0,
+    "Spare2": 0,
+    "Timestamp": 22,
+    "TrueHeading": 511,
+    "UserID": 431300447,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525006265,
+   "MMSI_String": 525006265,
+   "ShipName": "",
+   "latitude": -6.07461,
+   "longitude": 106.88957,
+   "time_utc": "2026-09-17 03:00:19.818943494 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": true,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "",
+     "Valid": false
+    },
+    "ReportB": {
+     "CallSign": "JZON",
+     "Dimension": {
+      "A": 50,
+      "B": 12,
+      "C": 6,
+      "D": 6
+     },
+     "FixType": 15,
+     "ShipType": 80,
+     "Spare": 0,
+     "Valid": true,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525006265,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 412472950,
+   "MMSI_String": 412472950,
+   "ShipName": "",
+   "latitude": 14.55482,
+   "longitude": 120.93357,
+   "time_utc": "2026-09-17 03:00:22.01612065 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": true,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "",
+     "Valid": false
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 81,
+      "B": 18,
+      "C": 2,
+      "D": 13
+     },
+     "FixType": 0,
+     "ShipType": 33,
+     "Spare": 0,
+     "Valid": true,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": "XIN"
+    },
+    "Reserved": 0,
+    "UserID": 412472950,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431000954,
+   "MMSI_String": 431000954,
+   "ShipName": "SANKOSHOMA          ",
+   "latitude": 35.60844,
+   "longitude": 139.83475,
+   "time_utc": "2026-09-17 03:00:42.220250962 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "SANKOSHOMA          ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 431000954,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431006675,
+   "MMSI_String": 431006675,
+   "ShipName": "KAIEN1GOU           ",
+   "latitude": 35.63,
+   "longitude": 139.80093,
+   "time_utc": "2026-09-17 03:00:44.862567739 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "KAIEN1GOU           ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 431006675,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525201398,
+   "MMSI_String": 525201398,
+   "ShipName": "TB JOHAN JAYA 162",
+   "latitude": -2.33595,
+   "longitude": 104.91565,
+   "time_utc": "2026-09-17 03:00:44.936256448 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "TB JOHAN JAYA 162",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525201398,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416001454,
+   "MMSI_String": 416001454,
+   "ShipName": "HAE SHINN NO .2",
+   "latitude": 25.23025,
+   "longitude": 121.88442,
+   "time_utc": "2026-09-17 03:00:45.776636719 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "HAE SHINN NO .2",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 416001454,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416017884,
+   "MMSI_String": 416017884,
+   "ShipName": "TIAN SHYY NO.7",
+   "latitude": 25.24084,
+   "longitude": 121.86438,
+   "time_utc": "2026-09-17 03:00:46.657874504 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "TIAN SHYY NO.7",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 416017884,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 431024409,
+   "MMSI_String": 431024409,
+   "ShipName": "KANEYOSHI MARU      ",
+   "latitude": 35.37525,
+   "longitude": 139.89804,
+   "time_utc": "2026-09-17 03:00:50.752915732 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "KANEYOSHI MARU      ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 431024409,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525701339,
+   "MMSI_String": 525701339,
+   "ShipName": "",
+   "latitude": -2.47822,
+   "longitude": 104.82596,
+   "time_utc": "2026-09-17 03:00:51.14787818 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": true,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "",
+     "Valid": false
+    },
+    "ReportB": {
+     "CallSign": "YDC3767",
+     "Dimension": {
+      "A": 4,
+      "B": 25,
+      "C": 3,
+      "D": 4
+     },
+     "FixType": 0,
+     "ShipType": 52,
+     "Spare": 0,
+     "Valid": true,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525701339,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416006654,
+   "MMSI_String": 416006654,
+   "ShipName": "YONG AN NO2",
+   "latitude": 25.13763,
+   "longitude": 121.74791,
+   "time_utc": "2026-09-17 03:00:52.453728379 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 1,
+    "ReportA": {
+     "Name": "YONG AN NO2",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 416006654,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 432804000,
+   "MMSI_String": 432804000,
+   "ShipName": "YAHATAMARU NO.1     ",
+   "latitude": 35.6445,
+   "longitude": 139.77884,
+   "time_utc": "2026-09-17 03:00:52.457537131 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "YAHATAMARU NO.1     ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 432804000,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525001014,
+   "MMSI_String": 525001014,
+   "ShipName": "KN TRISULA P 111    ",
+   "latitude": -6.09619,
+   "longitude": 106.86189,
+   "time_utc": "2026-09-17 03:00:53.2550432 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "KN TRISULA P 111    ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525001014,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525701451,
+   "MMSI_String": 525701451,
+   "ShipName": " BANJARMASIN VICTORY",
+   "latitude": -2.07882,
+   "longitude": 104.99913,
+   "time_utc": "2026-09-17 03:00:55.844508156 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": " BANJARMASIN VICTORY",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525701451,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 477995962,
+   "MMSI_String": 477995962,
+   "ShipName": "",
+   "latitude": 22.31759,
+   "longitude": 114.19849,
+   "time_utc": "2026-09-17 03:01:07.003830978 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": true,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "",
+     "Valid": false
+    },
+    "ReportB": {
+     "CallSign": "VRS5268",
+     "Dimension": {
+      "A": 16,
+      "B": 10,
+      "C": 4,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 60,
+     "Spare": 0,
+     "Valid": true,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 300274,
+     "VendorIDName": "SH-"
+    },
+    "Reserved": 0,
+    "UserID": 477995962,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416008448,
+   "MMSI_String": 416008448,
+   "ShipName": "YU  FA  NO 123      ",
+   "latitude": 25.25097,
+   "longitude": 121.72414,
+   "time_utc": "2026-09-17 03:01:07.08331498 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 1,
+    "ReportA": {
+     "Name": "YU  FA  NO 123      ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 416008448,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416003965,
+   "MMSI_String": 416003965,
+   "ShipName": "LONG FA JIN NO.168",
+   "latitude": 25.23054,
+   "longitude": 121.79469,
+   "time_utc": "2026-09-17 03:01:08.187794481 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "LONG FA JIN NO.168",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 416003965,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525901191,
+   "MMSI_String": 525901191,
+   "ShipName": "TB.TOGA 28",
+   "latitude": -6.05193,
+   "longitude": 106.95964,
+   "time_utc": "2026-09-17 03:01:08.957662222 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "TB.TOGA 28",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525901191,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 525901212,
+   "MMSI_String": 525901212,
+   "ShipName": "KM MANUNGAL BAROKAH ",
+   "latitude": -6.86586,
+   "longitude": 109.75184,
+   "time_utc": "2026-09-17 03:01:11.085790136 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "KM MANUNGAL BAROKAH ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 525901212,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 413906582,
+   "MMSI_String": 413906582,
+   "ShipName": "SHUNFENG68          ",
+   "latitude": 22.34857,
+   "longitude": 114.11515,
+   "time_utc": "2026-09-17 03:01:12.052722713 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "SHUNFENG68          ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 413906582,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 574561623,
+   "MMSI_String": 574561623,
+   "ShipName": "CAU GU NHAT SINH    ",
+   "latitude": 14.56951,
+   "longitude": 109.06198,
+   "time_utc": "2026-09-17 03:01:12.172069992 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "CAU GU NHAT SINH    ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 574561623,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 413837481,
+   "MMSI_String": 413837481,
+   "ShipName": "",
+   "latitude": 22.29983,
+   "longitude": 114.16205,
+   "time_utc": "2026-09-17 03:01:12.899820985 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": true,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "",
+     "Valid": false
+    },
+    "ReportB": {
+     "CallSign": "       ",
+     "Dimension": {
+      "A": 70,
+      "B": 19,
+      "C": 8,
+      "D": 10
+     },
+     "FixType": 9,
+     "ShipType": 70,
+     "Spare": 0,
+     "Valid": true,
+     "VenderIDModel": 12,
+     "VenderIDSerial": 740465,
+     "VendorIDName": "FT-"
+    },
+    "Reserved": 0,
+    "UserID": 413837481,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416004481,
+   "MMSI_String": 416004481,
+   "ShipName": "BLUE HOLE",
+   "latitude": 25.1758,
+   "longitude": 121.73476,
+   "time_utc": "2026-09-17 03:01:19.883119931 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 1,
+    "ReportA": {
+     "Name": "BLUE HOLE",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 416004481,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 416004318,
+   "MMSI_String": 416004318,
+   "ShipName": "",
+   "latitude": 25.14692,
+   "longitude": 122.00529,
+   "time_utc": "2026-09-17 03:01:21.567206024 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": true,
+    "RepeatIndicator": 1,
+    "ReportA": {
+     "Name": "",
+     "Valid": false
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 40,
+      "B": 10,
+      "C": 5,
+      "D": 1
+     },
+     "FixType": 4,
+     "ShipType": 30,
+     "Spare": 0,
+     "Valid": true,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 733,
+     "VendorIDName": "H"
+    },
+    "Reserved": 0,
+    "UserID": 416004318,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 538072933,
+   "MMSI_String": 538072933,
+   "ShipName": "DANU",
+   "latitude": 22.31294,
+   "longitude": 114.21369,
+   "time_utc": "2026-09-17 03:01:23.552950161 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "DANU",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 538072933,
+    "Valid": true
+   }
+  }
+ },
+ {
+  "MetaData": {
+   "MMSI": 413906927,
+   "MMSI_String": 413906927,
+   "ShipName": "QIJI229             ",
+   "latitude": 22.30753,
+   "longitude": 114.1595,
+   "time_utc": "2026-09-17 03:01:23.735900149 +0000 UTC"
+  },
+  "MessageType": "StaticDataReport",
+  "Message": {
+   "StaticDataReport": {
+    "MessageID": 24,
+    "PartNumber": false,
+    "RepeatIndicator": 0,
+    "ReportA": {
+     "Name": "QIJI229             ",
+     "Valid": true
+    },
+    "ReportB": {
+     "CallSign": "",
+     "Dimension": {
+      "A": 0,
+      "B": 0,
+      "C": 0,
+      "D": 0
+     },
+     "FixType": 0,
+     "ShipType": 0,
+     "Spare": 0,
+     "Valid": false,
+     "VenderIDModel": 0,
+     "VenderIDSerial": 0,
+     "VendorIDName": ""
+    },
+    "Reserved": 0,
+    "UserID": 413906927,
+    "Valid": true
+   }
+  }
+ }
+]

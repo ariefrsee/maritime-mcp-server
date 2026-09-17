@@ -25,7 +25,27 @@ MID_FILE = files(__package__).joinpath("data/mid_countries.json")
 
 # Message types that carry a position. Class B units are fitted to smaller
 # vessels and report a reduced field set, notably with no navigational status.
-POSITION_TYPES = ("PositionReport", "StandardClassBPositionReport")
+#
+# ExtendedClassBPositionReport (message 19) is here because it carries a
+# position like the others. It is unusual in also carrying the ship's name and
+# type in the same message, so it appears in CLASS_B_IDENTITY_TYPES as well.
+POSITION_TYPES = (
+    "PositionReport",
+    "StandardClassBPositionReport",
+    "ExtendedClassBPositionReport",
+)
+
+# How a Class B vessel says what it is.
+#
+# Class A sends ShipStaticData (message 5). Class B does not, and this server
+# listened only for message 5, so every Class B vessel was reported as "Type not
+# reported" no matter how long it had been in view. Measured on 2026-09-17 these
+# two were 8.6% of all traffic and were dropped on the floor, which is why
+# roughly half the fleet had no type.
+#
+# Names were mostly unaffected: MetaData.ShipName rides on every message, so
+# identity() was already picking those up. The gap was the type.
+CLASS_B_IDENTITY_TYPES = ("StaticDataReport", "ExtendedClassBPositionReport")
 
 # ITU navigational status, 0 to 15.
 NAV_STATUS = {
@@ -105,8 +125,14 @@ def navigational_status(code) -> str | None:
 
 
 def ship_type(code) -> str | None:
-    """Map an AIS ship type code to a category."""
-    if code is None:
+    """Map an AIS ship type code to a category.
+
+    Code 0 is "not available" in the standard, the type equivalent of an unset
+    navigational status. It was being reported as "Unknown type 0", which reads
+    as a category nobody recognises rather than as the absence of an answer, and
+    it showed up in the dashboard legend as exactly that.
+    """
+    if code is None or code == 0:
         return None
     if code in TYPE_SPECIFIC:
         return TYPE_SPECIFIC[code]
@@ -287,7 +313,49 @@ def static_fields(body) -> dict:
     }
 
 
-def to_record(position=None, static=None, name=None, mmsi=None) -> dict:
+def class_b_identity(kind, body) -> dict:
+    """Name, type and length from the Class B messages, which carry them
+    differently from Class A.
+
+    Returns only the keys this particular message actually established, so a
+    caller can merge successive messages without a later one blanking what an
+    earlier one supplied.
+
+    StaticDataReport (message 24) arrives in two halves and each says which one
+    it is: part A carries the name, part B the ship type and the hull
+    dimensions. Observed on 2026-09-17, 19 of 25 captured messages were part A
+    and 6 were part B, so a vessel's type can lag its name by a long way.
+    """
+    if kind == "ExtendedClassBPositionReport":
+        out = {}
+        if clean(body.get("Name")):
+            out["name"] = clean(body.get("Name"))
+        if ship_type(body.get("Type")):
+            out["type"] = ship_type(body.get("Type"))
+        if length_from_dimension(body.get("Dimension")):
+            out["length_m"] = length_from_dimension(body.get("Dimension"))
+        return out
+
+    if kind == "StaticDataReport":
+        out = {}
+        part_a = body.get("ReportA") or {}
+        part_b = body.get("ReportB") or {}
+        # Valid is the field that says which half this is. PartNumber agrees
+        # with it in every captured message, but Valid is the one that names
+        # the content rather than describing the frame.
+        if part_a.get("Valid") and clean(part_a.get("Name")):
+            out["name"] = clean(part_a.get("Name"))
+        if part_b.get("Valid"):
+            if ship_type(part_b.get("ShipType")):
+                out["type"] = ship_type(part_b.get("ShipType"))
+            if length_from_dimension(part_b.get("Dimension")):
+                out["length_m"] = length_from_dimension(part_b.get("Dimension"))
+        return out
+
+    return {}
+
+
+def to_record(position=None, static=None, name=None, mmsi=None, extra=None) -> dict:
     """Fold what is known about one vessel into the server's record shape.
 
     Every key the bundled snapshot has is present. Anything not known is None.
@@ -313,4 +381,11 @@ def to_record(position=None, static=None, name=None, mmsi=None) -> dict:
         record.update(position_fields(position))
     if static:
         record.update(static_fields(static))
+    # Class B identity fills gaps rather than overwriting: a Class A vessel that
+    # has sent full static data should not have it replaced by a partial Class B
+    # report, and nothing here should turn a known value back into None.
+    if extra:
+        for key, value in extra.items():
+            if value is not None and record.get(key) is None:
+                record[key] = value
     return record

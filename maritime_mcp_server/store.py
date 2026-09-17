@@ -109,10 +109,21 @@ class VesselStore:
 
         with self._lock:
             entry = self._vessels.setdefault(
-                mmsi, {"position": None, "static": None, "name": None, "observed_at": observed}
+                mmsi,
+                {"position": None, "static": None, "class_b": {},
+                 "name": None, "observed_at": observed},
             )
             if ident["name"]:
                 entry["name"] = ident["name"]
+
+            # Class B identity accumulates across messages. Message 24 arrives
+            # in two halves, so the name and the type can be minutes apart, and
+            # each half must add to what is known rather than replace it.
+            if kind in ais_mapping.CLASS_B_IDENTITY_TYPES:
+                entry.setdefault("class_b", {}).update(
+                    ais_mapping.class_b_identity(kind, body)
+                )
+
             if kind in ais_mapping.POSITION_TYPES:
                 entry["position"] = body
                 entry["observed_at"] = observed
@@ -120,6 +131,10 @@ class VesselStore:
                 entry["static"] = body
                 # Static data alone does not prove the vessel is still moving,
                 # so it refreshes the clock only if nothing newer is held.
+                if observed > entry["observed_at"]:
+                    entry["observed_at"] = observed
+            elif kind == "StaticDataReport":
+                # Identity without a position, exactly like ShipStaticData.
                 if observed > entry["observed_at"]:
                     entry["observed_at"] = observed
             else:
@@ -134,6 +149,14 @@ class VesselStore:
 
     def _write_history(self, kind, body, ident, observed) -> None:
         mmsi = ident["mmsi"]
+        # The feed carries aids to navigation, base stations and malformed
+        # identifiers alongside ships. records() has always dropped them, so the
+        # live view was clean while the history quietly accumulated them: a
+        # navigation buoy sat in the table looking like a vessel moored for two
+        # days. Anything built on this table would have counted it, so the
+        # filter belongs at the write as well as at the read.
+        if ais_mapping.mmsi_kind(mmsi) != "ship":
+            return
         if kind in ais_mapping.POSITION_TYPES:
             fields = ais_mapping.position_fields(body)
             self._history.record_position(
@@ -158,6 +181,17 @@ class VesselStore:
                 destination=static.get("destination"),
                 flag=ais_mapping.flag_from_mmsi(mmsi),
             )
+        elif kind in ais_mapping.CLASS_B_IDENTITY_TYPES:
+            found = ais_mapping.class_b_identity(kind, body)
+            if found:
+                self._history.record_identity(
+                    mmsi,
+                    observed,
+                    name=found.get("name"),
+                    type=found.get("type"),
+                    length_m=found.get("length_m"),
+                    flag=ais_mapping.flag_from_mmsi(mmsi),
+                )
 
     def _expired(self, entry, now) -> bool:
         return now - entry["observed_at"] > self._max_age
@@ -205,6 +239,7 @@ class VesselStore:
                     static=entry["static"],
                     name=entry["name"],
                     mmsi=mmsi,
+                    extra=entry.get("class_b"),
                 )
                 # A restored vessel knows things its rebuilt AIS body cannot
                 # carry. Fill only the gaps: anything a live message has since
