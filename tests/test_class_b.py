@@ -208,3 +208,31 @@ def test_a_navigation_buoy_is_not_written_into_the_history(tmp_path):
                                         tzinfo=__import__("datetime").timezone.utc))}
     assert written == {"533012345"}
     history.close()
+
+
+def test_a_stale_unknown_type_zero_is_cleared_on_open(tmp_path):
+    """Fixing ship_type() stopped new bad labels but not old ones. The stored
+    identity table is rehydrated into the live view, so 89 rows written before
+    the fix kept putting "Unknown type 0" back on the map."""
+    import sqlite3
+    from maritime_mcp_server.history import VesselHistory
+
+    path = str(tmp_path / "v.db")
+    history = VesselHistory(path=path)
+    conn = sqlite3.connect(path)
+    conn.execute("INSERT INTO vessels (mmsi, type) VALUES ('1', 'Unknown type 0')")
+    conn.execute("INSERT INTO vessels (mmsi, type) VALUES ('2', 'Unknown type 9')")
+    conn.execute("INSERT INTO vessels (mmsi, type) VALUES ('3', 'Tanker')")
+    conn.commit()
+    conn.close()
+    history.close()
+
+    VesselHistory(path=path).close()          # reopening runs the migration
+
+    conn = sqlite3.connect(path)
+    kept = dict(conn.execute("SELECT mmsi, type FROM vessels").fetchall())
+    conn.close()
+    assert kept["1"] is None
+    # A genuinely unrecognised code still reports itself (G8).
+    assert kept["2"] == "Unknown type 9"
+    assert kept["3"] == "Tanker"
