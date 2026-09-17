@@ -35,6 +35,7 @@ from .collector import Collector
 from .history import VesselHistory
 from .store import VesselStore
 from . import regions as regions_module
+from . import port_calls as port_calls_module
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
@@ -746,6 +747,87 @@ def vessels_watched(
     shown = [_tidy(v) for v in matched[:limit]]
     return _respond({"data": reported, "watching": active, "matches": len(matched),
                      "returned": len(shown), "vessels": shown})
+
+
+def _resolve_vessel(query):
+    """One MMSI from a query, or an error payload. Shared so that "track the
+    Kowloon Express" and "port calls for the Kowloon Express" resolve the same
+    name the same way."""
+    q = str(query).strip()
+    if q.isdigit():
+        return q, None
+    vessels, _ = get_vessels(require_position=False)
+    matches = [v for v in vessels if q.lower() in (v.get("name") or "").lower()]
+    if not matches:
+        return None, {"error": f"No vessel found matching '{query}'."}
+    if len(matches) > 1:
+        return None, {
+            "error": f"'{query}' matched {len(matches)} vessels; be more specific.",
+            "candidates": [{"mmsi": m.get("mmsi"), "name": m.get("name")} for m in matches],
+        }
+    return matches[0].get("mmsi"), None
+
+
+@mcp.tool()
+def port_calls(
+    query: Annotated[str, Field(
+        description="Vessel to report, by exact MMSI or by (partial) name, "
+                    "case insensitive.")],
+    days: Annotated[float, Field(
+        gt=0, le=90,
+        description="How far back to look, in days, up to the 90 day retention "
+                    "window. History exists only from the point this server "
+                    "started keeping it.")] = 7,
+) -> str:
+    """When a vessel stopped, where, for how long, and whether she was working.
+
+    This is the skeleton of a Statement of Facts, read out of the recorded
+    track rather than typed from memory: arrival, time alongside or at anchor,
+    departure. Anchored and moored are kept apart, because in laytime terms one
+    is waiting and the other is working.
+
+    Everything reported was observed. A vessel that has not been seen to leave
+    has no departure time rather than an assumed one; a stop spanning a hole in
+    coverage is cut at the hole rather than claimed as continuous; and a stop
+    far from any known port is reported as at sea rather than given the name of
+    the nearest one. Where an arrival was not witnessed, because the record
+    starts mid-stop or follows a coverage hole, arrival_observed is false and
+    the arrival time is only when this server first saw her there.
+    """
+    if _history is None:
+        return _respond({"data": {"source": "unavailable"},
+                         "error": "History is not enabled on this server.",
+                         "calls": []})
+
+    mmsi, problem = _resolve_vessel(query)
+    if problem:
+        return _respond({"data": {"source": "history"}, **problem, "calls": []})
+
+    days = max(0.0, min(float(days), 90))
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    track = _history.track(mmsi, since)
+
+    fixes = [{"observed_at": p.get("observed_at"), "lat": p.get("lat"),
+              "lon": p.get("lon"), "sog": p.get("speed_knots"),
+              "status": p.get("status")} for p in track]
+    found = port_calls_module.find_calls(fixes, _nearest_port)
+
+    return _respond({
+        "data": {
+            "source": "history",
+            "mmsi": mmsi,
+            "days": days,
+            "position_count": len(track),
+            "note": (
+                "Reconstructed from recorded positions. A vessel is stopped "
+                "below 0.5 knots and under way above 3. Stops shorter than 45 "
+                "minutes are not reported as calls, and a gap in coverage of "
+                "over an hour ends a stop rather than being spanned."
+            ),
+        },
+        "summary": port_calls_module.summarise(found),
+        "calls": found,
+    })
 
 
 @mcp.resource("vessels://all")
