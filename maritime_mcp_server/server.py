@@ -1056,7 +1056,12 @@ def anchorages(
                              status="At anchor")
     found = anchorages_module.cluster(cells, ANCHORAGE_CELL)
     for anchorage in found:
-        anchorage["area_nm2"] = anchorages_module.area_nm2(anchorage)
+        # The water actually occupied, not the box around it. Those differ by
+        # more than three times at Singapore, and only one of them is the size
+        # of the anchorage.
+        anchorage["footprint_nm2"] = anchorages_module.footprint_nm2(
+            anchorage, ANCHORAGE_CELL)
+        anchorage["bounds_nm2"] = anchorages_module.bounds_nm2(anchorage)
 
     return _respond({
         "data": {
@@ -1067,8 +1072,12 @@ def anchorages(
             "note": (
                 "Derived from vessels reporting At anchor, not from a chart. "
                 "Counts are distinct vessels over the window, so a busy "
-                "anchorage and a long-stay one are told apart. An anchorage "
-                "outside receiver coverage does not appear at all."
+                "anchorage and a long-stay one are told apart. footprint is "
+                "the cells actually occupied and is the shape to draw; the "
+                "south/west/north/east box is only a query bound and at "
+                "Singapore it is over three times larger, taking in the island "
+                "and the fairway. An anchorage outside receiver coverage does "
+                "not appear at all."
             ),
         },
         "area": area,

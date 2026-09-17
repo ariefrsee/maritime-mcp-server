@@ -99,14 +99,40 @@ def cluster(cells, cell: float) -> list[dict]:
             "vessels": vessels,
             "positions": positions,
             "cells": len(group),
+            # The occupied cells themselves, so a caller can draw the shape
+            # rather than a box around it. Sorted for a stable payload.
+            "footprint": sorted(
+                [round(k[0] * cell, 4), round(k[1] * cell, 4)] for k in group
+            ),
         })
 
     found.sort(key=lambda a: -a["vessels"])
     return found
 
 
-def area_nm2(anchorage) -> float:
-    """Roughly how much water it covers, for a sense of scale."""
+def footprint_nm2(anchorage, cell: float) -> float:
+    """How much water is actually occupied, which is not the box around it.
+
+    The first version measured the bounding box and reported 226 square miles
+    for the Singapore anchorage. The occupied cells come to 64. The box spanned
+    from Jurong across to Batam and took in the island, Sentosa and the main
+    fairway, none of which anyone anchors in, and drawing it made the map claim
+    all of that as anchorage.
+
+    Counting cells is exact rather than approximate: each one is a known square
+    and they do not overlap.
+    """
+    lat_nm = cell * 60
+    lon_nm = cell * 60 * math.cos(math.radians(anchorage["lat"]))
+    return round(anchorage["cells"] * lat_nm * lon_nm, 1)
+
+
+def bounds_nm2(anchorage) -> float:
+    """The box around it, which is a different and larger number.
+
+    Kept because the box is still what a query is bounded by, but never to be
+    presented as the size of the anchorage.
+    """
     lat_nm = (anchorage["north"] - anchorage["south"]) * 60
     lon_nm = (anchorage["east"] - anchorage["west"]) * 60 * math.cos(
         math.radians((anchorage["north"] + anchorage["south"]) / 2))
