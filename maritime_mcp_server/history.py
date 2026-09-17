@@ -130,11 +130,30 @@ class VesselHistory:
     # first query against a column it has never heard of.
     ADDED_COLUMNS = (("positions", "cog", "REAL"), ("positions", "heading", "REAL"))
 
+    # Values written by an earlier version that the current code can no longer
+    # produce, and which are wrong rather than merely old. Kept as a list so the
+    # reason for each is recorded next to it.
+    #
+    # "Unknown type 0": AIS ship type 0 means "not available", the type
+    # equivalent of an unset navigational status. It was being labelled as an
+    # unrecognised category and rehydrated back into the live view long after
+    # the mapping was fixed. Other "Unknown type N" values are left alone: those
+    # codes genuinely are unrecognised and reporting them as themselves is the
+    # correct behaviour (G8).
+    STALE_VALUES = (("vessels", "type", "Unknown type 0"),)
+
     def _migrate(self, conn: sqlite3.Connection) -> None:
         for table, column, kind in self.ADDED_COLUMNS:
             existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
             if column not in existing:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
+
+        for table, column, value in self.STALE_VALUES:
+            conn.execute(f"UPDATE {table} SET {column} = NULL WHERE {column} = ?", (value,))
+        # An UPDATE opens a transaction, and the journal mode cannot be changed
+        # from inside one. ALTER TABLE above does not, which is why this only
+        # started mattering when a data fix joined the schema fixes.
+        conn.commit()
 
     def _prepare(self, conn: sqlite3.Connection) -> None:
         with self._guard():
