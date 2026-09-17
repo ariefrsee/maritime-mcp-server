@@ -36,6 +36,7 @@ from .history import VesselHistory
 from .store import VesselStore
 from . import regions as regions_module
 from . import port_calls as port_calls_module
+from . import anchorages as anchorages_module
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
@@ -988,6 +989,90 @@ def traffic_density(
         # mostly key names, and the order is documented here instead.
         "fields": ["lat", "lon", "vessels", "positions"],
         "cells": cells,
+    })
+
+
+#: Grid used to find anchorages. Finer than the traffic map, because two
+#: anchorages a mile apart are two places and 0.02 degrees would merge them.
+ANCHORAGE_CELL = 0.01
+
+
+@mcp.tool()
+def anchorages(
+    region: Annotated[str, Field(
+        description="Region key to search, for example 'malacca-strait'. Call "
+                    "list_regions for the keys. Ignored when bbox is given.")] = "",
+    bbox: Annotated[str, Field(
+        description="Area to search instead, as 'south,west,north,east'.")] = "",
+    days: Annotated[float, Field(
+        gt=0, le=90,
+        description="How far back to include, in days.")] = 7,
+) -> str:
+    """Where vessels actually anchor, found in the recorded positions.
+
+    No chart is consulted. This looks for water where a lot of vessels reported
+    "At anchor" and groups the touching parts into one place, so what comes back
+    is where ships really wait rather than where they are permitted to. For a
+    question about queueing, the first is the useful one.
+
+    Nothing is named. The cluster off eastern Singapore is obviously the eastern
+    anchorage to anyone who works there, but AIS does not say so and this will
+    not invent it. Each is given its extent, not a radius: an anchorage is
+    usually a long thin thing along a coast and a circle would claim water
+    nobody anchors in.
+
+    Bear the coverage caveat in mind. An anchorage nothing is listening to does
+    not appear here, and that is not the same as an anchorage nobody uses.
+    """
+    if _history is None:
+        return _respond({"data": {"source": "unavailable"},
+                         "error": "History is not enabled on this server.",
+                         "anchorages": []})
+
+    if bbox.strip():
+        parsed, error = _parse_bbox(bbox)
+        if error:
+            return _respond({"error": error, "anchorages": []})
+        south, west, north, east = parsed
+        area = {"bbox": {"south": south, "west": west, "north": north, "east": east}}
+    elif region.strip():
+        key = regions_module.normalise(region)
+        if key not in regions_module.REGIONS:
+            return _respond({
+                "error": f"No region called {region.strip()!r}. Call list_regions "
+                         "for the available keys.",
+                "anchorages": [],
+            })
+        bounds = regions_module.bounds_of(regions_module.REGIONS[key]["box"])
+        south, west = bounds["south"], bounds["west"]
+        north, east = bounds["north"], bounds["east"]
+        area = {"region": key, "bounds": bounds}
+    else:
+        return _respond({"error": "Give either a region or a bbox.", "anchorages": []})
+
+    days = max(0.0, min(float(days), 90))
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    cells = _history.density(since, south, west, north, east, ANCHORAGE_CELL,
+                             status="At anchor")
+    found = anchorages_module.cluster(cells, ANCHORAGE_CELL)
+    for anchorage in found:
+        anchorage["area_nm2"] = anchorages_module.area_nm2(anchorage)
+
+    return _respond({
+        "data": {
+            "source": "history",
+            "days": days,
+            "cell_degrees": ANCHORAGE_CELL,
+            "minimum_vessels": anchorages_module.MIN_VESSELS,
+            "note": (
+                "Derived from vessels reporting At anchor, not from a chart. "
+                "Counts are distinct vessels over the window, so a busy "
+                "anchorage and a long-stay one are told apart. An anchorage "
+                "outside receiver coverage does not appear at all."
+            ),
+        },
+        "area": area,
+        "anchorages": found,
     })
 
 
