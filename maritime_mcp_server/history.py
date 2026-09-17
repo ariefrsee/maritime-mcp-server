@@ -246,6 +246,41 @@ class VesselHistory:
             for row in rows
         ]
 
+    def activity_by_hour(self, since: datetime, south, west, north, east) -> list[dict]:
+        """Distinct vessels per hour in a box, split by what they reported.
+
+        Counted in SQL rather than by pulling every row into Python: a fortnight
+        of a busy strait is millions of positions, and the answer is a few
+        hundred numbers.
+
+        DISTINCT matters. A vessel moored alongside reports every three minutes,
+        so counting rows would say twenty ships where there is one.
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                """
+                SELECT substr(observed_at, 1, 13) AS hour,
+                       COUNT(*) AS positions,
+                       COUNT(DISTINCT mmsi) AS vessels,
+                       COUNT(DISTINCT CASE WHEN status = 'At anchor' THEN mmsi END) AS at_anchor,
+                       COUNT(DISTINCT CASE WHEN status = 'Moored' THEN mmsi END) AS moored,
+                       COUNT(DISTINCT CASE WHEN sog >= 3 THEN mmsi END) AS under_way
+                FROM positions
+                WHERE observed_at >= ?
+                  AND lat BETWEEN ? AND ?
+                  AND lon BETWEEN ? AND ?
+                GROUP BY hour
+                ORDER BY hour
+                """,
+                (_iso(since), south, north, west, east),
+            ).fetchall()
+        return [
+            {"hour": r[0], "positions": r[1], "vessels": r[2],
+             "at_anchor": r[3], "moored": r[4], "under_way": r[5]}
+            for r in rows
+        ]
+
     def latest_positions(self, since: datetime) -> list[dict]:
         """The newest position per vessel since a cutoff, for rehydrating.
 

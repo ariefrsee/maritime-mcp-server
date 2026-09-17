@@ -830,6 +830,81 @@ def port_calls(
     })
 
 
+@mcp.tool()
+def congestion(
+    region: Annotated[str, Field(
+        description="Region key to report, for example 'malacca-strait'. Call "
+                    "list_regions for the keys. Ignored when bbox is given.")] = "",
+    bbox: Annotated[str, Field(
+        description="Area to report instead, as 'south,west,north,east' in "
+                    "degrees.")] = "",
+    hours: Annotated[int, Field(
+        gt=0, le=24 * 14,
+        description="How far back to look, in hours, up to two weeks.")] = 48,
+) -> str:
+    """How busy an area has been, hour by hour, from the recorded track.
+
+    Counts distinct vessels per hour by what they were reporting: at anchor,
+    moored, or under way. The anchored count is the one that answers "how long
+    is the queue", which is what a charterer rings an agent about.
+
+    Each vessel is counted once per hour it was heard in, so a vessel reporting
+    twenty times in an hour counts once. An hour with no coverage reads as zero
+    and is indistinguishable from an hour with no ships, which is why the
+    response reports how many positions each hour was built from.
+    """
+    if _history is None:
+        return _respond({"data": {"source": "unavailable"},
+                         "error": "History is not enabled on this server.",
+                         "hours": []})
+
+    if bbox.strip():
+        parsed, error = _parse_bbox(bbox)
+        if error:
+            return _respond({"error": error, "hours": []})
+        south, west, north, east = parsed
+        area = {"bbox": {"south": south, "west": west, "north": north, "east": east}}
+    elif region.strip():
+        key = regions_module.normalise(region)
+        if key not in regions_module.REGIONS:
+            return _respond({
+                "error": f"No region called {region.strip()!r}. Call list_regions "
+                         "for the available keys.",
+                "hours": [],
+            })
+        bounds = regions_module.bounds_of(regions_module.REGIONS[key]["box"])
+        south, west = bounds["south"], bounds["west"]
+        north, east = bounds["north"], bounds["east"]
+        area = {"region": key, "bounds": bounds}
+    else:
+        return _respond({"error": "Give either a region or a bbox.", "hours": []})
+
+    hours = max(1, min(int(hours), 24 * 14))
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    counted = _history.activity_by_hour(since, south, west, north, east)
+
+    anchored = [h["at_anchor"] for h in counted]
+    return _respond({
+        "data": {
+            "source": "history",
+            "hours": hours,
+            "note": (
+                "Distinct vessels per hour, by reported status. An hour with no "
+                "coverage reads as zero and cannot be told apart from an hour "
+                "with no ships, so positions is given alongside each count."
+            ),
+        },
+        "area": area,
+        "summary": {
+            "hours_covered": len(counted),
+            "at_anchor_now": anchored[-1] if anchored else None,
+            "at_anchor_median": (sorted(anchored)[len(anchored) // 2] if anchored else None),
+            "at_anchor_peak": max(anchored) if anchored else None,
+        },
+        "hours": counted,
+    })
+
+
 @mcp.resource("vessels://all")
 def all_vessels() -> str:
     """The full vessel dataset as a JSON resource."""
