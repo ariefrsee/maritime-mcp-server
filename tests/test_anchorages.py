@@ -11,7 +11,12 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from maritime_mcp_server.anchorages import MIN_VESSELS, area_nm2, cluster
+from maritime_mcp_server.anchorages import (
+    MIN_VESSELS,
+    bounds_nm2,
+    cluster,
+    footprint_nm2,
+)
 from maritime_mcp_server.history import VesselHistory
 
 CELL = 0.01
@@ -106,9 +111,23 @@ def test_biggest_anchorage_comes_first():
     assert out[0]["vessels"] == 40
 
 
-def test_area_is_reported_in_square_miles():
-    out = cluster(cells((1.25, 103.80, 4), (1.25, 103.81, 4)), CELL)[0]
-    assert area_nm2(out) > 0
+def test_the_footprint_is_the_cells_occupied_not_the_box_around_them():
+    """The first version reported the bounding box. At Singapore that was 226
+    square miles against 64 actually occupied: the box reached from Jurong to
+    Batam and took in the island, Sentosa and the main fairway. Drawing it made
+    the map claim all of that as anchorage."""
+    # An L shape: three cells occupied, but the box around them covers four.
+    out = cluster(cells((1.25, 103.80, 4), (1.26, 103.80, 4), (1.25, 103.81, 4)), CELL)[0]
+    assert out["cells"] == 3
+    assert footprint_nm2(out, CELL) < bounds_nm2(out), "the box must be the larger number"
+    assert footprint_nm2(out, CELL) == pytest.approx(bounds_nm2(out) * 3 / 4, rel=0.1)
+
+
+def test_the_occupied_cells_are_returned_so_the_shape_can_be_drawn():
+    out = cluster(cells((1.25, 103.80, 4), (1.26, 103.80, 4)), CELL)[0]
+    assert len(out["footprint"]) == 2
+    assert [1.25, 103.8] in out["footprint"]
+    assert [1.26, 103.8] in out["footprint"]
 
 
 # --- against the real query ---------------------------------------------------
