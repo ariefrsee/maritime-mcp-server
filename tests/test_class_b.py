@@ -15,6 +15,7 @@ which is how this gap survived a test suite (G7).
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -114,15 +115,23 @@ def test_an_invalid_half_contributes_nothing():
 
 # --- merging, which is where a partial message could do damage ---------------
 
+#: The instant every synthetic message in this module is stamped with. Reads are
+#: anchored to it rather than to the wall clock, because the store expires
+#: entries after thirty minutes: a test that reads "now" passes for half an hour
+#: after it is written and fails every day thereafter.
+SENT_AT = "2026-09-17 06:00:00.000000000 +0000 UTC"
+SENT_MOMENT = datetime(2026, 9, 17, 6, 0, tzinfo=timezone.utc)
+
+
 def _msg(kind, body, mmsi="525000001", name=None):
     return {"MessageType": kind,
-            "MetaData": {"MMSI": mmsi, "ShipName": name,
-                         "time_utc": "2026-09-17 06:00:00.000000000 +0000 UTC"},
+            "MetaData": {"MMSI": mmsi, "ShipName": name, "time_utc": SENT_AT},
             "Message": {kind: body}}
 
 
 def _record(store, mmsi="525000001"):
-    return next(r for r in store.records(require_position=False) if r["mmsi"] == mmsi)
+    return next(r for r in store.records(now=SENT_MOMENT, require_position=False)
+                if r["mmsi"] == mmsi)
 
 
 def test_the_two_halves_combine_into_one_vessel():
@@ -174,11 +183,23 @@ def test_class_a_static_is_not_overwritten_by_a_class_b_report():
 
 def test_the_captured_traffic_now_yields_types(captured):
     """Before this change none of these messages were parsed at all, so every
-    one of these vessels was "Type not reported"."""
+    one of these vessels was "Type not reported".
+
+    Read as of the capture's own clock, not the wall clock. The fixture carries
+    the real timestamps from 2026-09-17, and the store expires anything older
+    than thirty minutes, so the first version of this test passed on the day it
+    was written and would have failed every day after.
+    """
     store = VesselStore()
     for message in captured:
         store.ingest(message)
-    records = store.records(require_position=False)
+
+    latest = max(
+        ais_mapping.identity(m)["observed_at"]
+        for m in captured
+        if ais_mapping.identity(m)["observed_at"]
+    )
+    records = store.records(now=latest, require_position=False)
     typed = [r for r in records if r.get("type")]
     assert len(records) > 40, "the fixture should produce a decent number of vessels"
     assert len(typed) >= 20, f"only {len(typed)} of {len(records)} got a type"

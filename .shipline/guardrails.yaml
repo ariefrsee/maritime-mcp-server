@@ -610,3 +610,27 @@ guardrails:
       a restore leaves a failure, suspect the same thing before re-editing the
       source.
 
+  - id: G28
+    status: active
+    title: Anchor a test to the data's clock, never to the wall clock
+    reason: >
+      S17 committed a fixture of real AIS messages carrying their real capture
+      timestamps, and asserted against store.records() with no now argument.
+      The store expires entries after thirty minutes, so the test passed for
+      half an hour after it was written and would have failed on every run
+      afterwards. Three more tests in the same module used a hardcoded
+      timestamp and were due to start failing later the same day. All four were
+      green when committed, which is exactly why nobody looked.
+    applies_to: [backend, frontend, mobile, infrastructure, ops]
+    severity: high
+    discovered_in: S19
+    discovered_on: 17/09/2026
+    injection: >
+      Any code that expires, ages out, retries after an interval or compares
+      against "now" must be tested with the clock passed in, not read from the
+      system. Pass an explicit moment derived from the fixture's own timestamps.
+      When reviewing a test that uses recorded data, ask what it will do when
+      run a week from now: if the answer depends on the date, it is not a test,
+      it is a countdown. A green suite is not evidence here, because the failure
+      is in the future.
+
