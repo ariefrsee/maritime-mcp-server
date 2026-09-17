@@ -634,3 +634,25 @@ guardrails:
       it is a countdown. A green suite is not evidence here, because the failure
       is in the future.
 
+  - id: G29
+    status: active
+    title: Write a threshold test with literals, not against the constant
+    reason: >
+      S21 guarded a minimum-vessel floor with cluster(cells(MIN_VESSELS - 1)),
+      which reads correctly and is worthless. Mutating MIN_VESSELS from 3 to 1
+      made the test check zero vessels, which is still below the floor, so it
+      passed. The floor could have been removed entirely and every test would
+      have stayed green. It was caught only because the mutation run produced
+      no failure at all, which is itself the signal.
+    applies_to: [backend, frontend, mobile, infrastructure, content, ops]
+    severity: medium
+    discovered_in: S21
+    discovered_on: 17/09/2026
+    injection: >
+      When testing a threshold, write the values as literals on both sides of
+      it and assert the constant separately, so that changing the constant
+      fails the test rather than moving the test with it. A test phrased in
+      terms of the value it is guarding cannot detect that value changing. And
+      treat a mutation that produces no failure as a finding about the test,
+      not as evidence the code is fine.
+

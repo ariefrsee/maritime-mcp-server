@@ -281,7 +281,8 @@ class VesselHistory:
             for r in rows
         ]
 
-    def density(self, since: datetime, south, west, north, east, cell: float) -> list[tuple]:
+    def density(self, since: datetime, south, west, north, east, cell: float,
+                status: str | None = None) -> list[tuple]:
         """Recorded positions collapsed onto a grid, for a density map.
 
         Returns (lat, lon, vessels, positions) per occupied cell, counting
@@ -291,6 +292,10 @@ class VesselHistory:
 
         Aggregated in SQL. Three hundred thousand positions is too much to send
         to a browser; nine thousand cells is not.
+
+        `status` narrows it to one reported state, which is how the anchorage
+        map is built: the same grid, counting only vessels that said they were
+        at anchor.
         """
         conn = self._connect()
         with self._guard():
@@ -305,9 +310,11 @@ class VesselHistory:
                   AND lat IS NOT NULL
                   AND lat BETWEEN ? AND ?
                   AND lon BETWEEN ? AND ?
+                  AND (? IS NULL OR status = ?)
                 GROUP BY la, lo
                 """,
-                (cell, cell, cell, cell, _iso(since), south, north, west, east),
+                (cell, cell, cell, cell, _iso(since), south, north, west, east,
+                 status, status),
             ).fetchall()
         return [(round(r[0], 5), round(r[1], 5), r[2], r[3]) for r in rows]
 
