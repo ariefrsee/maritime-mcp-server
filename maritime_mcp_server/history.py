@@ -281,6 +281,36 @@ class VesselHistory:
             for r in rows
         ]
 
+    def density(self, since: datetime, south, west, north, east, cell: float) -> list[tuple]:
+        """Recorded positions collapsed onto a grid, for a density map.
+
+        Returns (lat, lon, vessels, positions) per occupied cell, counting
+        distinct vessels as well as reports: one ship anchored for two days
+        produces hundreds of positions in a single cell and would otherwise
+        outweigh a hundred ships passing through it.
+
+        Aggregated in SQL. Three hundred thousand positions is too much to send
+        to a browser; nine thousand cells is not.
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                """
+                SELECT ROUND(lat / ?) * ? AS la,
+                       ROUND(lon / ?) * ? AS lo,
+                       COUNT(DISTINCT mmsi) AS vessels,
+                       COUNT(*) AS positions
+                FROM positions
+                WHERE observed_at >= ?
+                  AND lat IS NOT NULL
+                  AND lat BETWEEN ? AND ?
+                  AND lon BETWEEN ? AND ?
+                GROUP BY la, lo
+                """,
+                (cell, cell, cell, cell, _iso(since), south, north, west, east),
+            ).fetchall()
+        return [(round(r[0], 5), round(r[1], 5), r[2], r[3]) for r in rows]
+
     def latest_positions(self, since: datetime) -> list[dict]:
         """The newest position per vessel since a cutoff, for rehydrating.
 

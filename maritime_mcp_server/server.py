@@ -905,6 +905,92 @@ def congestion(
     })
 
 
+#: Grid resolution for the density map, in degrees. About 1.2 nautical miles,
+#: which resolves an anchorage from the lane beside it while keeping the answer
+#: to roughly nine thousand cells over the Malacca Strait. Measured: 0.005 deg
+#: gives 33,000 cells and 670 KB, which is more than a browser wants for a
+#: background layer.
+DEFAULT_DENSITY_CELL = 0.02
+
+
+@mcp.tool()
+def traffic_density(
+    region: Annotated[str, Field(
+        description="Region key to report, for example 'malacca-strait'. Call "
+                    "list_regions for the keys. Ignored when bbox is given.")] = "",
+    bbox: Annotated[str, Field(
+        description="Area to report instead, as 'south,west,north,east'.")] = "",
+    days: Annotated[float, Field(
+        gt=0, le=90,
+        description="How far back to include, in days, up to the 90 day "
+                    "retention window.")] = 7,
+    cell_degrees: Annotated[float, Field(
+        gt=0.001, le=1.0,
+        description="Grid cell size in degrees. 0.02 is about 1.2 nautical "
+                    "miles. Smaller resolves more and costs more.")] = DEFAULT_DENSITY_CELL,
+) -> str:
+    """Where vessels have actually been, as a grid of counts.
+
+    Read this as coverage as much as traffic. It shows where positions were
+    *received*, so an empty cell means either that no ship went there or that
+    nothing was listening. Port Klang reads as empty on this map and it is one
+    of the busiest ports in the world.
+
+    Each cell reports distinct vessels and total positions separately, because
+    they answer different questions: one ship anchored for two days makes
+    hundreds of positions in a single cell, which is a fact about that ship and
+    not about how busy the cell is.
+    """
+    if _history is None:
+        return _respond({"data": {"source": "unavailable"},
+                         "error": "History is not enabled on this server.",
+                         "cells": []})
+
+    if bbox.strip():
+        parsed, error = _parse_bbox(bbox)
+        if error:
+            return _respond({"error": error, "cells": []})
+        south, west, north, east = parsed
+        area = {"bbox": {"south": south, "west": west, "north": north, "east": east}}
+    elif region.strip():
+        key = regions_module.normalise(region)
+        if key not in regions_module.REGIONS:
+            return _respond({
+                "error": f"No region called {region.strip()!r}. Call list_regions "
+                         "for the available keys.",
+                "cells": [],
+            })
+        bounds = regions_module.bounds_of(regions_module.REGIONS[key]["box"])
+        south, west = bounds["south"], bounds["west"]
+        north, east = bounds["north"], bounds["east"]
+        area = {"region": key, "bounds": bounds}
+    else:
+        return _respond({"error": "Give either a region or a bbox.", "cells": []})
+
+    days = max(0.0, min(float(days), 90))
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    cells = _history.density(since, south, west, north, east, float(cell_degrees))
+
+    return _respond({
+        "data": {
+            "source": "history",
+            "days": days,
+            "cell_degrees": cell_degrees,
+            "cell_count": len(cells),
+            "note": (
+                "Where positions were received, which is traffic and receiver "
+                "coverage combined. An empty cell means no ship went there or "
+                "nothing was listening, and this data cannot tell them apart."
+            ),
+        },
+        "area": area,
+        # Tuples rather than objects: nine thousand cells of {"lat":...} is
+        # mostly key names, and the order is documented here instead.
+        "fields": ["lat", "lon", "vessels", "positions"],
+        "cells": cells,
+    })
+
+
 @mcp.resource("vessels://all")
 def all_vessels() -> str:
     """The full vessel dataset as a JSON resource."""
