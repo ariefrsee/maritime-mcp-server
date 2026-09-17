@@ -81,6 +81,12 @@ def _region(key, title, box, rate_per_s, measured_on, note=None):
 _region("malaysia", "Malaysia",
         [[[0.5, 98.5], [7.5, 119.5]]], 0.40, "2026-09-15",
         "The Strait of Malacca, both coasts of the peninsula, Sabah and Sarawak.")
+_region("malacca-strait", "Malacca Strait",
+        [[[0.8, 98.8], [6.8, 104.6]]], 0.66, "2026-09-17",
+        "The shipping lane itself: Langkawi, Penang, Port Klang, Port Dickson, "
+        "Malacca, Tanjung Pelepas and out through the Singapore Strait. Sea room "
+        "on the Sumatra side is included because the lane runs down the middle "
+        "of the water rather than along the Malaysian coast.")
 _region("singapore-strait", "Singapore Strait",
         [[[0.7, 103.0], [1.9, 104.9]]], 0.38, "2026-09-15",
         "Almost all of Malaysia's traffic is here: this strip alone measured "

@@ -586,3 +586,27 @@ guardrails:
       repeating its comparison inline, and treat a duplicated comparison as the
       smell that it is.
 
+  - id: G27
+    status: active
+    title: Clear bytecode caches between mutation runs
+    reason: >
+      S16 broke a region box on purpose, watched the right test fail, restored
+      the file, and the test kept failing. The source on disk was correct and
+      the import still saw the mutated value, because __pycache__ held bytecode
+      from the mutated run. It cost an investigation. The dangerous version of
+      this is the opposite: a stale cache that still holds the *good* bytecode
+      makes a mutation appear not to break anything, the test passes, and G17's
+      entire purpose, proving the test can fail, is quietly defeated.
+    applies_to: [backend, infrastructure, ops]
+    severity: medium
+    discovered_in: S16
+    discovered_on: 17/09/2026
+    injection: >
+      When mutating code to prove a test can fail, clear the bytecode or build
+      cache before each run and again after restoring, for Python with find .
+      -name __pycache__ -not -path "./.venv/*" -exec rm -rf {} +. Confirm the
+      restored suite is green before moving on. If a mutation produces no
+      failure, suspect a stale cache before concluding the test is weak, and if
+      a restore leaves a failure, suspect the same thing before re-editing the
+      source.
+

@@ -280,3 +280,33 @@ def test_watched_spans_every_active_region(monkeypatch):
 
     out = json.loads(server.vessels_watched())
     assert {v["mmsi"] for v in out["vessels"]} == {"1", "2"}
+
+
+def test_the_malacca_strait_covers_every_port_on_the_lane():
+    """The region exists to answer one question: show me the shipping lane from
+    Langkawi down to Singapore. If a port on that lane falls outside the box the
+    region does not do its job, and a rectangle over a diagonal corridor is easy
+    to get subtly wrong."""
+    ports = {
+        "Langkawi": (6.35, 99.80),
+        "Penang": (5.41, 100.34),
+        "Port Klang": (3.00, 101.36),
+        "Port Dickson": (2.52, 101.80),
+        "Malacca": (2.19, 102.25),
+        "Tanjung Pelepas": (1.36, 103.54),
+        "Singapore": (1.26, 103.82),
+        "Singapore Strait, eastern end": (1.20, 104.40),
+    }
+    for name, (lat, lon) in ports.items():
+        assert regions.contains("malacca-strait", lat, lon), f"{name} is outside the box"
+
+
+def test_the_malacca_strait_leaves_out_the_water_it_is_not_about():
+    """It is the west coast lane. East Malaysia and the east coast ports are a
+    different question and belong to a different selection."""
+    for name, (lat, lon) in {
+        "Kota Kinabalu": (5.98, 116.07),
+        "Kuching": (1.57, 110.34),
+        "Bintulu": (3.26, 113.06),
+    }.items():
+        assert not regions.contains("malacca-strait", lat, lon), f"{name} should be outside"
