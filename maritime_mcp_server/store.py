@@ -189,6 +189,11 @@ class VesselStore:
                 observed,
                 type=static.get("type"),
                 length_m=static.get("length_m"),
+                beam_m=static.get("beam_m"),
+                imo=static.get("imo"),
+                call_sign=static.get("call_sign"),
+                draught_m=static.get("draught_m"),
+                eta_declared=static.get("eta_declared"),
                 destination=static.get("destination"),
                 flag=ais_mapping.flag_from_mmsi(mmsi),
             )

@@ -17,6 +17,7 @@ is committed at tests/data/ais_capture.json. Two things it corrected:
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from functools import lru_cache
 from importlib.resources import files
@@ -236,6 +237,101 @@ def parse_time(value) -> datetime | None:
     return None
 
 
+# --- particulars AIS does transmit and this server used to drop ---------------
+
+#: Rate of turn is not sent in degrees. It is sent as a signed square root
+#: scaled by 4.733, so 127 means "turning faster than this scale can express"
+#: and -128 means the sensor is not reporting at all. Read raw, a hard turn and
+#: a missing sensor are both just numbers near 128.
+ROT_UNAVAILABLE = -128
+ROT_OFF_SCALE = 127
+
+#: Draught 0 means not available, not a vessel drawing nothing.
+DRAUGHT_UNAVAILABLE = 0
+
+
+def rate_of_turn(value):
+    """Degrees per minute, or None.
+
+    Returns the sign as well as the rate: a vessel swinging to port and one
+    swinging to starboard are different facts and the magnitude alone loses it.
+    Off-scale is reported as the scale limit with a flag rather than as a
+    precise number nobody transmitted.
+    """
+    if not isinstance(value, int) or value == ROT_UNAVAILABLE:
+        return None
+    if abs(value) >= ROT_OFF_SCALE:
+        return {"degrees_per_minute": 708.0 if value > 0 else -708.0, "off_scale": True}
+    rate = (abs(value) / 4.733) ** 2
+    return {"degrees_per_minute": round(math.copysign(rate, value), 1), "off_scale": False}
+
+
+def imo_number(value):
+    """An IMO number whose checksum holds, or None.
+
+    The last digit is a checksum over the first six, weighted 7 down to 2. This
+    rejects a malformed number, and that is all it does.
+
+    It is deliberately not sold as more than that. A random seven digit number
+    passes one time in ten, and 1149346, transmitted by a small craft called
+    STL PT6 in real Malaysian traffic, passes: weighted sum 86, last digit 6,
+    check digit 6. So does 1234567. What comes back here is "this is not
+    obviously malformed", not "this ship is really registered".
+
+    Worth having anyway, because a garbled field is the common failure and this
+    catches it, and because reporting a number that cannot possibly be an IMO
+    beside a real MMSI is the plausible-looking wrong value G8 exists to stop.
+    """
+    if not isinstance(value, int) or not 1_000_000 <= value <= 9_999_999:
+        return None
+    digits = [int(d) for d in str(value)]
+    checksum = sum(d * w for d, w in zip(digits[:6], range(7, 1, -1)))
+    return value if checksum % 10 == digits[6] else None
+
+
+def draught_m(value):
+    """Maximum static draught in metres, or None when not reported."""
+    if not isinstance(value, (int, float)) or value <= DRAUGHT_UNAVAILABLE:
+        return None
+    return round(float(value), 1)
+
+
+def beam_from_dimension(dimension):
+    """Beam in metres, from the reference point offsets.
+
+    C is reference point to port, D to starboard, so C + D is the beam. Not
+    transmitted directly, the same way length is not.
+    """
+    if not isinstance(dimension, dict):
+        return None
+    c, d = dimension.get("C"), dimension.get("D")
+    if not isinstance(c, int) or not isinstance(d, int):
+        return None
+    return (c + d) or None
+
+
+def declared_eta(eta):
+    """The ETA the master typed in, as a plain string, or None.
+
+    Deliberately not a timestamp. AIS sends month, day, hour and minute with no
+    year and no timezone, so turning it into a datetime means inventing a year
+    and asserting a timezone nobody sent. It is a declaration, not a
+    computation, and it is presented as one.
+
+    Month 0, day 0, hour 24 or minute 60 all mean "not set", which is what a
+    transmitter sends when nobody on the bridge filled it in.
+    """
+    if not isinstance(eta, dict):
+        return None
+    month, day = eta.get("Month"), eta.get("Day")
+    hour, minute = eta.get("Hour"), eta.get("Minute")
+    if not all(isinstance(v, int) for v in (month, day, hour, minute)):
+        return None
+    if month == 0 or day == 0 or hour > 23 or minute > 59:
+        return None
+    return f"{day:02d}-{month:02d} {hour:02d}:{minute:02d}"
+
+
 def identity(message) -> dict:
     """Pull MMSI, name and observation time out of the MetaData envelope."""
     meta = message.get("MetaData") or {}
@@ -301,7 +397,30 @@ def position_fields(body) -> dict:
         "course_degrees": course_over_ground(body.get("Cog")),
         "heading_degrees": true_heading(body.get("TrueHeading")),
         "status": navigational_status(body.get("NavigationalStatus")),
+        # Rate of turn arrives on every position report, unlike the particulars
+        # in the identity message. It is the one field here that says what the
+        # vessel is doing right now rather than where she is.
+        **turn_fields(body.get("RateOfTurn")),
+        "position_accurate": position_accuracy(body.get("PositionAccuracy")),
     }
+
+
+def turn_fields(value) -> dict:
+    """Flatten rate_of_turn() into the two keys a record carries."""
+    turn = rate_of_turn(value)
+    if turn is None:
+        return {"rate_of_turn_dpm": None, "turn_off_scale": None}
+    return {"rate_of_turn_dpm": turn["degrees_per_minute"],
+            "turn_off_scale": turn["off_scale"]}
+
+
+def position_accuracy(value):
+    """The transmitter's own claim about its fix: roughly 10 m versus 100 m.
+
+    A bool is passed through and anything else becomes None, because an absent
+    flag is not the same claim as a reported low-accuracy fix.
+    """
+    return value if isinstance(value, bool) else None
 
 
 def static_fields(body) -> dict:
@@ -310,6 +429,11 @@ def static_fields(body) -> dict:
         "type": ship_type(body.get("Type")),
         "destination": clean(body.get("Destination")),
         "length_m": length_from_dimension(body.get("Dimension")),
+        "beam_m": beam_from_dimension(body.get("Dimension")),
+        "imo": imo_number(body.get("ImoNumber")),
+        "call_sign": clean(body.get("CallSign")),
+        "draught_m": draught_m(body.get("MaximumStaticDraught")),
+        "eta_declared": declared_eta(body.get("Eta")),
     }
 
 
@@ -373,6 +497,14 @@ def to_record(position=None, static=None, name=None, mmsi=None, extra=None) -> d
         "course_degrees": None,
         "heading_degrees": None,
         "length_m": None,
+        "beam_m": None,
+        "imo": None,
+        "call_sign": None,
+        "draught_m": None,
+        "eta_declared": None,
+        "rate_of_turn_dpm": None,
+        "turn_off_scale": None,
+        "position_accurate": None,
         "destination": None,
         "nearest_port": None,
         "status": None,

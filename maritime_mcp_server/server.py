@@ -173,17 +173,48 @@ def _respond(payload) -> str:
 _PRECISION = {"lat": 4, "lon": 4, "speed_knots": 1, "distance_nm": 1, "length_m": 0}
 
 
+#: Particulars that are omitted entirely when unknown rather than sent as null.
+#:
+#: The rule elsewhere in this file is that a null is a claim: AIS has not
+#: reported that field. That rule is kept for everything that was already in the
+#: record, so nothing any caller reads today changes shape.
+#:
+#: These eight are new and are unknown for most vessels most of the time,
+#: because AIS sends identity far less often than position. Carrying them as
+#: nulls grew a typical response by 41 percent, which is most of what M02 was
+#: for, to say nothing eight times per vessel. The claim they were making is
+#: made once instead, in the note on every response that can contain them.
+_OMIT_WHEN_UNKNOWN = frozenset({
+    "imo", "call_sign", "beam_m", "draught_m", "eta_declared",
+    "rate_of_turn_dpm", "turn_off_scale", "position_accurate",
+})
+
+
+#: Flags that are only sent when they carry the exceptional value.
+#:
+#: Both of these are true-or-false on every position report, and on almost
+#: every vessel they hold the unremarkable one: she is turning within the range
+#: the field can express, and her fix is the good kind. Sent on all of them
+#: they cost more than the measurement they qualify. Absence therefore means
+#: the ordinary case, which is stated in the response note.
+_OMIT_WHEN_UNREMARKABLE = {"turn_off_scale": False, "position_accurate": True}
+
+
 def _tidy(record: dict, drop=()) -> dict:
     """Round the numbers and drop fields that carry nothing in this context.
 
-    Nothing is removed for being unknown: a null still means AIS has not
+    A null is not removed for being unknown: it still means AIS has not
     reported that field, which is a different claim from the field being
-    absent. Only genuinely redundant fields are dropped, and only when the
-    caller already has the information.
+    absent. The exception is _OMIT_WHEN_UNKNOWN, where the same claim is made
+    once in the response note instead of eight times per vessel.
     """
     out = {}
     for key, value in record.items():
         if key in drop:
+            continue
+        if value is None and key in _OMIT_WHEN_UNKNOWN:
+            continue
+        if _OMIT_WHEN_UNREMARKABLE.get(key, object()) is value:
             continue
         places = _PRECISION.get(key)
         if places is not None and isinstance(value, (int, float)):

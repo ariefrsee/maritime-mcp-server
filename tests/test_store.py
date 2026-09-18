@@ -168,10 +168,19 @@ def test_the_captured_fixture_produces_a_known_vessel_count(filled_store):
 
 
 def test_every_fixture_record_has_the_full_key_set(filled_store):
+    """Every record carries every key, present or null.
+
+    The store's shape does not vary by what AIS happened to have said about a
+    given vessel. Fields are only dropped later, at the response boundary, and
+    only the ones _OMIT_WHEN_UNKNOWN names.
+    """
     expected = {"mmsi", "name", "type", "flag", "lat", "lon", "speed_knots",
                 "course_degrees", "heading_degrees",
                 "length_m", "destination", "nearest_port", "status",
-                "position_age_seconds"}
+                "position_age_seconds",
+                # Particulars AIS transmits and this server used to discard.
+                "beam_m", "imo", "call_sign", "draught_m", "eta_declared",
+                "rate_of_turn_dpm", "turn_off_scale", "position_accurate"}
     for rec in filled_store.records(now=CAPTURE_DAY):
         assert set(rec) == expected
 
