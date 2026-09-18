@@ -656,3 +656,29 @@ guardrails:
       treat a mutation that produces no failure as a finding about the test,
       not as evidence the code is fine.
 
+  - id: G30
+    status: active
+    title: A hook returning a fresh object makes every dependent effect an every-render effect
+    reason: >
+      useWatchedArea built a new object with a new bounds array on each render.
+      The map's camera effect depended on that value, so it fired on every
+      render, and the page re-renders every few seconds as AIS positions
+      arrive. The map re-framed itself constantly and threw away whatever the
+      user had zoomed to, within seconds, every time. It shipped and ran for a
+      day before the user reported it as "why does it zoom out again". Nothing
+      in the types, the linter or the build could see it: the value was correct
+      every single time, only its identity changed.
+    applies_to: [frontend, mobile]
+    severity: high
+    discovered_in: S23
+    discovered_on: 18/09/2026
+    injection: >
+      Any hook that computes and returns an object, array or function must
+      memoise it, because its identity is what a dependency array compares. A
+      correct value recomputed fresh each render is indistinguishable from a
+      changed one. Before writing an effect that depends on a hook's return
+      value, check how that value is produced, and prefer depending on a
+      primitive derived from it, a joined string of the numbers, over the object
+      itself. Treat anything that moves a camera, scrolls, refetches or resets
+      user state on a timer as a bug until proven otherwise.
+
