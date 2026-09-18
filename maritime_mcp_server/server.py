@@ -37,6 +37,7 @@ from .store import VesselStore
 from . import regions as regions_module
 from . import port_calls as port_calls_module
 from . import anchorages as anchorages_module
+from . import passages as passages_module
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
@@ -1082,6 +1083,80 @@ def anchorages(
         },
         "area": area,
         "anchorages": found,
+    })
+
+
+@mcp.tool()
+def passage_time(
+    origin: Annotated[str, Field(
+        description="Port to leave from, by name. One of the ports "
+                    "vessels_near_port accepts.")],
+    destination: Annotated[str, Field(
+        description="Port to arrive at, by name.")],
+    days: Annotated[float, Field(
+        gt=0, le=90,
+        description="How far back to look for passages, in days.")] = 14,
+) -> str:
+    """How long this leg actually takes, from ships that made it.
+
+    Not distance divided by an assumed speed. That knows nothing about the
+    strait, the traffic, the pilot boarding, or the hour spent waiting for a
+    berth at the far end. This is measured from recorded tracks.
+
+    The spread comes with the middle, always. A leg whose median is fourteen
+    hours and whose range is seven to sixty two is not a leg anyone should
+    schedule to fourteen, and reporting the median alone would invite exactly
+    that. Below five observed passages no median is given at all.
+
+    Time spent waiting at the origin is not passage time: the clock starts when
+    the vessel leaves the origin's reach, not when it was first seen there. A
+    vessel seen arriving but never departing is not counted, because a record
+    that starts mid-voyage is not evidence of a voyage.
+    """
+    if _history is None:
+        return _respond({"data": {"source": "unavailable"},
+                         "error": "History is not enabled on this server.",
+                         "passages": []})
+
+    start = PORTS.get(_filter_text(origin))
+    end = PORTS.get(_filter_text(destination))
+    if not start or not end:
+        missing = origin if not start else destination
+        return _respond({
+            "error": f"No port called {missing.strip()!r}. Known ports: "
+                     + ", ".join(sorted(p.title() for p in PORTS)),
+            "passages": [],
+        })
+    if start == end:
+        return _respond({"error": "Origin and destination are the same port.",
+                         "passages": []})
+
+    days = max(0.0, min(float(days), 90))
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+
+    found = []
+    for mmsi, fixes in _history.tracks_since(since).items():
+        for passage in passages_module.passages_for(fixes, start, end):
+            found.append({"mmsi": mmsi, **passage})
+
+    found.sort(key=lambda p: p["hours"])
+    distance = _haversine_nm(start[0], start[1], end[0], end[1])
+
+    return _respond({
+        "data": {
+            "source": "history",
+            "origin": origin.strip(),
+            "destination": destination.strip(),
+            "days": days,
+            "note": (
+                "Observed passages, not a calculation. The straight line "
+                "distance is given for scale but ships do not steam it, so the "
+                "implied speed is lower than any speed actually made good. "
+                "Only legs both ends of which were witnessed are counted."
+            ),
+        },
+        "summary": passages_module.summarise(found, distance_nm=distance),
+        "passages": found[:100],
     })
 
 

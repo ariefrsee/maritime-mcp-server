@@ -108,6 +108,7 @@ class VesselStore:
         observed = ident["observed_at"] or datetime.now(timezone.utc)
 
         with self._lock:
+            first_sight = mmsi not in self._vessels
             entry = self._vessels.setdefault(
                 mmsi,
                 {"position": None, "static": None, "class_b": {},
@@ -144,10 +145,10 @@ class VesselStore:
         # on disk. The history is append-only, so ordering between writers does
         # not matter.
         if self._history is not None:
-            self._write_history(kind, body, ident, observed)
+            self._write_history(kind, body, ident, observed, first_sight)
         return True
 
-    def _write_history(self, kind, body, ident, observed) -> None:
+    def _write_history(self, kind, body, ident, observed, first_sight=False) -> None:
         mmsi = ident["mmsi"]
         # The feed carries aids to navigation, base stations and malformed
         # identifiers alongside ships. records() has always dropped them, so the
@@ -169,6 +170,16 @@ class VesselStore:
                 cog=fields["course_degrees"],
                 heading=fields["heading_degrees"],
             )
+        # Flag, on first sight, for every vessel rather than only the ones that
+        # send identity. It is derived from the MMSI digits, which every message
+        # carries by definition, and the database had it for 36% of vessels
+        # purely because it was only written alongside a name or a type. Once
+        # per vessel, not once per position: this is the hot path.
+        if first_sight:
+            flag = ais_mapping.flag_from_mmsi(mmsi)
+            if flag:
+                self._history.record_identity(mmsi, observed, flag=flag)
+
         if ident["name"]:
             self._history.record_identity(mmsi, observed, name=ident["name"])
         if kind == "ShipStaticData":

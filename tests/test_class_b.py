@@ -257,3 +257,29 @@ def test_a_stale_unknown_type_zero_is_cleared_on_open(tmp_path):
     # A genuinely unrecognised code still reports itself (G8).
     assert kept["2"] == "Unknown type 9"
     assert kept["3"] == "Tanker"
+
+
+def test_a_flag_is_recorded_for_every_vessel_not_only_named_ones(tmp_path):
+    """Flag comes from the MMSI digits, which every message carries, so it is
+    knowable for every vessel that has ever been heard. It was only written
+    alongside a name or a type, which left it unknown for 3,670 of 5,765
+    vessels in the production database: derivable data we simply were not
+    writing down."""
+    from maritime_mcp_server.history import VesselHistory
+
+    history = VesselHistory(path=str(tmp_path / "v.db"))
+    store = VesselStore(history=history)
+
+    # A position and nothing else. No name, no type, no static data at all.
+    store.ingest(_msg("PositionReport",
+                      {"Latitude": 3.0, "Longitude": 101.4, "Sog": 8.0,
+                       "NavigationalStatus": 0, "Cog": 90.0, "TrueHeading": 90},
+                      mmsi="533012345"))
+
+    import sqlite3
+    conn = sqlite3.connect(str(tmp_path / "v.db"))
+    flag = conn.execute("SELECT flag FROM vessels WHERE mmsi = '533012345'").fetchone()
+    conn.close()
+    history.close()
+    assert flag is not None, "no row was written for a vessel we have heard"
+    assert flag[0] == "Malaysia", f"533 is a Malaysian MMSI, got {flag[0]}"

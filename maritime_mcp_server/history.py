@@ -318,6 +318,27 @@ class VesselHistory:
             ).fetchall()
         return [(round(r[0], 5), round(r[1], 5), r[2], r[3]) for r in rows]
 
+    def tracks_since(self, since: datetime) -> dict:
+        """Every vessel's positions since a cutoff, keyed by MMSI.
+
+        One query rather than one per vessel: asking for five thousand tracks
+        individually is five thousand round trips to answer a question about a
+        single leg.
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                "SELECT mmsi, observed_at, lat, lon FROM positions"
+                " WHERE observed_at >= ? AND lat IS NOT NULL"
+                " ORDER BY mmsi, observed_at",
+                (_iso(since),),
+            ).fetchall()
+        tracks: dict[str, list] = {}
+        for mmsi, observed_at, lat, lon in rows:
+            tracks.setdefault(mmsi, []).append(
+                {"observed_at": observed_at, "lat": lat, "lon": lon})
+        return tracks
+
     def latest_positions(self, since: datetime) -> list[dict]:
         """The newest position per vessel since a cutoff, for rehydrating.
 
