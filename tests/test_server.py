@@ -293,18 +293,28 @@ FIXTURE_NEAR = ("Tanjung Pelepas", 40)
 # its own, not by quietly deleting a field during a merge.
 def test_a_typical_response_is_not_dominated_by_formatting(filled_store):
     """S07. Before that story the same call returned 26,713 characters, of which
-    29% was indentation carrying no information. It is 18,116 now."""
+    29% was indentation carrying no information. It was 18,116 after S07.
+
+    S25 re-baselined this to 23,000. The eight particulars measured 21,324 on
+    this fixture, up 3,208 characters, or 18%. Carried as plain nulls they
+    measured 28,240, so the omission rules in _tidy are doing most of the work
+    and the remainder is almost entirely rate of turn, which is a real
+    per-message measurement on nearly every vessel rather than formatting.
+
+    The budget guards against formatting waste, not against reporting things,
+    so it moves with a measurement recorded rather than by dropping a field.
+    """
     S.set_store(filled_store)
     raw = S.vessels_near_port(*FIXTURE_NEAR, limit=200)
-    assert len(raw) < 20_000, f"uncapped response grew to {len(raw)} chars"
+    assert len(raw) < 23_000, f"uncapped response grew to {len(raw)} chars"
     assert '\n' not in raw, "responses must be serialised compactly, not indented"
 
 
 def test_the_default_limit_keeps_a_busy_answer_small(filled_store):
-    """About 271 characters a vessel across 25 vessels."""
+    """Was about 271 characters a vessel across 25 vessels; about 318 after S25."""
     S.set_store(filled_store)
     raw = S.vessels_near_port(*FIXTURE_NEAR)
-    assert len(raw) < 7_500, f"default response grew to {len(raw)} chars"
+    assert len(raw) < 8_600, f"default response grew to {len(raw)} chars"
 
 
 def test_coordinates_are_rounded_to_about_eleven_metres(filled_store):

@@ -184,7 +184,10 @@ def test_a_record_has_exactly_the_snapshot_keys():
     """The bundled snapshot is the contract. No key missing, no key extra."""
     expected = {"mmsi", "name", "type", "flag", "lat", "lon",
                 "speed_knots", "course_degrees", "heading_degrees",
-                "length_m", "destination", "nearest_port", "status"}
+                "length_m", "destination", "nearest_port", "status",
+                # S25. AIS transmits these and the server used to drop them.
+                "beam_m", "imo", "call_sign", "draught_m", "eta_declared",
+                "rate_of_turn_dpm", "turn_off_scale", "position_accurate"}
     assert set(m.to_record(mmsi="533012345")) == expected
 
 
@@ -226,9 +229,13 @@ def test_position_fields_extracts_only_the_position_half():
     got = m.position_fields({"Latitude": 1.26, "Longitude": 103.79, "Sog": 12.5,
                              "Cog": 87.5, "TrueHeading": 90,
                              "NavigationalStatus": 1})
+    # No RateOfTurn and no PositionAccuracy in this body, so both come back
+    # None. The record keeps the keys; the response layer is where an unknown
+    # or an unremarkable value stops being sent.
     assert got == {"lat": 1.26, "lon": 103.79, "speed_knots": 12.5,
                    "course_degrees": 87.5, "heading_degrees": 90,
-                   "status": "At anchor"}
+                   "status": "At anchor", "rate_of_turn_dpm": None,
+                   "turn_off_scale": None, "position_accurate": None}
 
 
 def test_position_fields_on_a_class_b_body_reports_no_status():
@@ -240,11 +247,22 @@ def test_position_fields_on_a_class_b_body_reports_no_status():
 def test_static_fields_extracts_only_the_identity_half():
     got = m.static_fields({"Type": 80, "Destination": "SGSIN   ",
                            "Dimension": {"A": 150, "B": 50, "C": 10, "D": 10}})
-    assert got == {"type": "Tanker", "destination": "SGSIN", "length_m": 200}
+    # Beam comes from the same Dimension block as length: C + D, port plus
+    # starboard of the reported position. The four particulars this body does
+    # not carry stay None rather than being guessed from the ship type.
+    assert got == {"type": "Tanker", "destination": "SGSIN", "length_m": 200,
+                   "beam_m": 20, "imo": None, "call_sign": None,
+                   "draught_m": None, "eta_declared": None}
 
 
 def test_static_fields_on_an_empty_body_returns_all_none():
-    assert m.static_fields({}) == {"type": None, "destination": None, "length_m": None}
+    # The particulars added in S25 are here too. Every one of them is None on
+    # an empty body, which is the point: nothing is defaulted to a plausible
+    # value just because the field now exists.
+    assert m.static_fields({}) == {
+        "type": None, "destination": None, "length_m": None, "beam_m": None,
+        "imo": None, "call_sign": None, "draught_m": None, "eta_declared": None,
+    }
 
 
 def test_class_b_position_report_has_no_status_field():

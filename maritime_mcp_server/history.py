@@ -128,7 +128,17 @@ class VesselHistory:
     # Columns added after the first release. A database written by an earlier
     # version opens fine and is migrated in place, rather than failing on the
     # first query against a column it has never heard of.
-    ADDED_COLUMNS = (("positions", "cog", "REAL"), ("positions", "heading", "REAL"))
+    ADDED_COLUMNS = (
+        ("positions", "cog", "REAL"),
+        ("positions", "heading", "REAL"),
+        # Particulars AIS transmits and this server used to drop. Added in
+        # place so an existing ninety day database keeps its history.
+        ("vessels", "imo", "INTEGER"),
+        ("vessels", "call_sign", "TEXT"),
+        ("vessels", "beam_m", "REAL"),
+        ("vessels", "draught_m", "REAL"),
+        ("vessels", "eta_declared", "TEXT"),
+    )
 
     # Values written by an earlier version that the current code can no longer
     # produce, and which are wrong rather than merely old. Kept as a list so the
@@ -195,15 +205,28 @@ class VesselHistory:
         with self._guard():
             conn.execute(
                 """
-                INSERT INTO vessels (mmsi, name, type, flag, length_m, destination, updated_at)
-                VALUES (:mmsi, :name, :type, :flag, :length_m, :destination, :updated_at)
+                INSERT INTO vessels (mmsi, name, type, flag, length_m, beam_m,
+                                     imo, call_sign, draught_m, eta_declared,
+                                     destination, updated_at)
+                VALUES (:mmsi, :name, :type, :flag, :length_m, :beam_m,
+                        :imo, :call_sign, :draught_m, :eta_declared,
+                        :destination, :updated_at)
                 ON CONFLICT(mmsi) DO UPDATE SET
-                    name        = COALESCE(excluded.name, vessels.name),
-                    type        = COALESCE(excluded.type, vessels.type),
-                    flag        = COALESCE(excluded.flag, vessels.flag),
-                    length_m    = COALESCE(excluded.length_m, vessels.length_m),
-                    destination = COALESCE(excluded.destination, vessels.destination),
-                    updated_at  = excluded.updated_at
+                    name         = COALESCE(excluded.name, vessels.name),
+                    type         = COALESCE(excluded.type, vessels.type),
+                    flag         = COALESCE(excluded.flag, vessels.flag),
+                    length_m     = COALESCE(excluded.length_m, vessels.length_m),
+                    beam_m       = COALESCE(excluded.beam_m, vessels.beam_m),
+                    imo          = COALESCE(excluded.imo, vessels.imo),
+                    call_sign    = COALESCE(excluded.call_sign, vessels.call_sign),
+                    -- Draught and ETA change between voyages, so the newest
+                    -- report wins rather than the first one ever seen. They
+                    -- are the two fields here that are about this voyage
+                    -- rather than about the ship.
+                    draught_m    = COALESCE(excluded.draught_m, vessels.draught_m),
+                    eta_declared = COALESCE(excluded.eta_declared, vessels.eta_declared),
+                    destination  = COALESCE(excluded.destination, vessels.destination),
+                    updated_at   = excluded.updated_at
                 """,
                 {
                     "mmsi": str(mmsi),
@@ -211,6 +234,11 @@ class VesselHistory:
                     "type": fields.get("type"),
                     "flag": fields.get("flag"),
                     "length_m": fields.get("length_m"),
+                    "beam_m": fields.get("beam_m"),
+                    "imo": fields.get("imo"),
+                    "call_sign": fields.get("call_sign"),
+                    "draught_m": fields.get("draught_m"),
+                    "eta_declared": fields.get("eta_declared"),
                     "destination": fields.get("destination"),
                     "updated_at": _iso(observed_at),
                 },
