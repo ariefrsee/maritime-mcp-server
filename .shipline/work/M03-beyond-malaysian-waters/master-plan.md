@@ -6,15 +6,20 @@ pipeline_state:
   branch: milestone/M03
   started_at: 2026-09-15
   due_date: TBD
-  last_updated: 2026-09-15
-  stories_total: 1
-  stories_done: 1
+  last_updated: 2026-09-18
+  stories_total: 3
+  stories_done: 3
   stories_open: 0
 ---
 
 # M03: Beyond Malaysian waters
 
 Milestone rollup. Story numbering continues from M02 rather than restarting.
+
+> S14, S15 and S16 belong to this milestone. S17 to S25 carried on the numbering
+> but not the subject, and shipped without a milestone of their own. They are
+> recorded in `S15-S25-backfill.md` alongside this file rather than being
+> claimed here.
 
 ## 1. Overview
 
