@@ -99,3 +99,27 @@ def test_the_spread_is_always_given_with_the_middle():
 def test_implied_speed_is_over_the_whole_leg_including_stops():
     out = summarise([{"hours": 14.0}] * 5, distance_nm=180)
     assert out["median_speed_kn"] == pytest.approx(12.9, abs=0.1)
+
+
+# --- against the server's own port table --------------------------------------
+
+def test_the_port_table_the_tool_reads_actually_exists():
+    """The first version referenced PORTS, which is not what the table is
+    called, so the tool raised a NameError on every single invocation and the
+    error surfaced only as "Error executing tool"."""
+    from maritime_mcp_server import server
+
+    assert hasattr(server, "PORT_COORDS")
+    assert not hasattr(server, "PORTS")
+    for name in ("singapore", "port klang", "port dickson", "tanjung pelepas"):
+        assert name in server.PORT_COORDS, f"{name} missing from the port table"
+
+
+def test_singapore_is_the_nearest_port_to_a_ship_in_singapore():
+    """It was absent from the table, so a vessel in the roads was reported as
+    being a dozen miles from Pasir Gudang across a border. True, and no use."""
+    from maritime_mcp_server.server import _nearest_port
+
+    port, distance = _nearest_port(1.264, 103.822)
+    assert port == "Singapore"
+    assert distance < 1

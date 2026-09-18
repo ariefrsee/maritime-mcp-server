@@ -56,6 +56,11 @@ PORT_COORDS = {
     # Peninsular, south and east coast
     "tanjung pelepas": (1.36, 103.54),
     "pasir gudang": (1.44, 103.90),
+    # Not Malaysian, and it has to be here anyway. Two thirds of everything
+    # this feed hears is in Singapore water, and without an entry the nearest
+    # name to a ship in the roads was Pasir Gudang or Tanjung Pelepas, a dozen
+    # miles away across a border. True, and no use to anybody.
+    "singapore": (1.264, 103.822),
     "kuantan": (3.97, 103.43),
     "kemaman": (4.25, 103.45),
     "kuala terengganu": (5.33, 103.14),
@@ -1118,13 +1123,13 @@ def passage_time(
                          "error": "History is not enabled on this server.",
                          "passages": []})
 
-    start = PORTS.get(_filter_text(origin))
-    end = PORTS.get(_filter_text(destination))
+    start = PORT_COORDS.get(_filter_text(origin))
+    end = PORT_COORDS.get(_filter_text(destination))
     if not start or not end:
         missing = origin if not start else destination
         return _respond({
             "error": f"No port called {missing.strip()!r}. Known ports: "
-                     + ", ".join(sorted(p.title() for p in PORTS)),
+                     + ", ".join(sorted(p.title() for p in PORT_COORDS)),
             "passages": [],
         })
     if start == end:
