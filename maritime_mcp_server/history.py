@@ -29,6 +29,13 @@ HISTORY_DAYS_VAR = "MARITIME_MCP_HISTORY_DAYS"
 # whether a vessel is current, this decides whether its history is kept.
 DEFAULT_HISTORY_DAYS = 90
 
+# positions_time serves questions about a time window over an area, which the
+# (mmsi, observed_at) index cannot. Worse, when such a query groups or dedupes
+# by vessel the planner picks the vessel index anyway and reads every row
+# through it: 2.2 s on production for the port board's candidates, against
+# 0.07 s through this index (S26). Queries that need it name it with INDEXED BY
+# rather than trusting the planner. Measured on a copy of production: 116 MB,
+# 2.6 s to build once, and no existing query slower.
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS positions (
     mmsi        TEXT    NOT NULL,
@@ -41,6 +48,7 @@ CREATE TABLE IF NOT EXISTS positions (
     status      TEXT
 );
 CREATE INDEX IF NOT EXISTS positions_mmsi_time ON positions (mmsi, observed_at);
+CREATE INDEX IF NOT EXISTS positions_time ON positions (observed_at);
 
 CREATE TABLE IF NOT EXISTS vessels (
     mmsi        TEXT PRIMARY KEY,
@@ -273,6 +281,79 @@ class VesselHistory:
             }
             for row in rows
         ]
+
+    def vessels_in_box(self, since: datetime, south, west, north, east) -> set:
+        """Every MMSI with a position in a box since a cutoff.
+
+        The candidates for a port board. Their whole tracks are then read one
+        vessel at a time through the (mmsi, observed_at) index, because the
+        board needs the fixes outside the box as well as inside it.
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                "SELECT DISTINCT mmsi FROM positions INDEXED BY positions_time"
+                " WHERE observed_at >= ?"
+                " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?",
+                (_iso(since), south, north, west, east),
+            ).fetchall()
+        return {r[0] for r in rows}
+
+    def days_present_in_box(self, since: datetime, until: datetime,
+                            south, west, north, east) -> dict:
+        """How many calendar days, in UTC, each vessel had a position in a box.
+
+        Counted per date rather than per fix: a tug alongside reports every few
+        minutes and a tanker at anchor once an hour, and both were there all
+        day. Measured at 3.4 s over fourteen days of production history before
+        positions_time existed; the caller still keeps the answer for a while.
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                "SELECT mmsi, COUNT(DISTINCT substr(observed_at, 1, 10))"
+                " FROM positions INDEXED BY positions_time"
+                " WHERE observed_at >= ? AND observed_at <= ?"
+                " AND lat BETWEEN ? AND ? AND lon BETWEEN ? AND ?"
+                " GROUP BY mmsi",
+                (_iso(since), _iso(until), south, north, west, east),
+            ).fetchall()
+        return {r[0]: r[1] for r in rows}
+
+    def identities(self, mmsis) -> dict:
+        """What is recorded about each vessel, keyed by MMSI.
+
+        A vessel never identified is simply absent; nothing is filled in.
+        """
+        wanted = [str(m) for m in mmsis]
+        if not wanted:
+            return {}
+        conn = self._connect()
+        marks = ",".join("?" * len(wanted))
+        with self._guard():
+            rows = conn.execute(
+                "SELECT mmsi, name, type, flag, length_m, destination, eta_declared"
+                f" FROM vessels WHERE mmsi IN ({marks})",
+                wanted,
+            ).fetchall()
+        return {
+            r[0]: {"name": r[1], "type": r[2], "flag": r[3], "length_m": r[4],
+                   "destination": r[5], "eta_declared": r[6]}
+            for r in rows
+        }
+
+    def destinations(self) -> dict:
+        """Every recorded declared destination, keyed by MMSI.
+
+        Read whole rather than filtered in SQL, because deciding which ones mean
+        a port is the port board's job and has to be done one way (G19).
+        """
+        conn = self._connect()
+        with self._guard():
+            rows = conn.execute(
+                "SELECT mmsi, destination FROM vessels WHERE destination IS NOT NULL"
+            ).fetchall()
+        return {r[0]: r[1] for r in rows}
 
     def activity_by_hour(self, since: datetime, south, west, north, east) -> list[dict]:
         """Distinct vessels per hour in a box, split by what they reported.

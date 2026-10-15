@@ -48,8 +48,8 @@
     "guardrails_file": ".shipline/guardrails.yaml"
   },
   "active": {
-    "milestone": "M03",
-    "story": "S25"
+    "milestone": "M04",
+    "story": "S26"
   },
   "milestones": [
     {
@@ -69,6 +69,12 @@
       "title": "Beyond Malaysian waters",
       "state": "in_progress",
       "path": ".shipline/work/M03-beyond-malaysian-waters/master-plan.md"
+    },
+    {
+      "id": "M04",
+      "title": "Port Dickson for the agency desk",
+      "state": "in_progress",
+      "path": ".shipline/work/M04-port-dickson/master-plan.md"
     }
   ]
 }
