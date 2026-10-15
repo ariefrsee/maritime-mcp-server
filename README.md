@@ -31,6 +31,7 @@ vessels_near_port("Tanjung Pelepas", 40)
 | `search_vessels(vessel_type, flag, status, limit)` | which ships match a type, flag state or navigational status |
 | `vessels_near_port(port, radius_nm, limit)` | what is within a radius of a named port, nearest first. Radius must be above 0 and at most 500 nautical miles |
 | `vessel_details(query)` | everything known about one ship, by MMSI or name |
+| `port_board(port)` | for a port agent's desk: which ships are at the port now, which are heading there, which left in the last 48 hours, and the harbour craft kept apart. Only `port dickson` so far |
 
 Resource `vessels://all` returns the whole current picture.
 

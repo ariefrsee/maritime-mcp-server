@@ -641,3 +641,110 @@ def test_fleet_track_without_history_reports_that_plainly():
     out = parse(S.fleet_track(hours=1))
     assert out["fleet"] == []
     assert "not enabled" in out["error"]
+
+
+# --- port board ---------------------------------------------------------------
+
+from datetime import datetime as _dt, timezone as _tz
+
+BOARD_NOW = _dt(2026, 10, 15, 12, 0, tzinfo=_tz.utc)
+
+
+@pytest.fixture
+def board_history(history_server):
+    """History seeded around Port Dickson, with the residency cache emptied."""
+    _, h = history_server
+    S._residency_cache.clear()
+    ago = lambda **kw: BOARD_NOW - timedelta(**kw)  # noqa: E731
+    # A tanker that stopped at the anchorage and declared Port Dickson.
+    h.record_identity("563413000", ago(days=1), name="RAINA", type="Tanker",
+                      flag="Singapore", destination="MY PDI", eta_declared="15-10 06:00")
+    h.record_position("563413000", ago(hours=5), 2.30, 101.80, 11.0, None)  # 13.2 nm out
+    h.record_position("563413000", ago(hours=3), 2.4550, 101.80, 0.0, "Under way using engine")
+    h.record_position("563413000", ago(hours=1), 2.4550, 101.80, None, "Under way using engine")
+    # A tug working the port.
+    h.record_identity("533000014", ago(days=1), name="RUBY", type="Tug")
+    h.record_position("533000014", ago(minutes=20), 2.52, 101.79, 0.0, None)
+    # Declared Port Dickson, still 20 nm south.
+    h.record_identity("563273100", ago(days=1), name="CASTOR", type="Tanker",
+                      destination="PORTDICKSON")
+    h.record_position("563273100", ago(hours=2), 2.52 - 20 / 60, 101.80, 9.5, None)
+    # Never identified, stopped inside: unknown type, not resident.
+    h.record_position("999000001", ago(hours=2), 2.50, 101.78, 0.1, None)
+    S._residency_cache.clear()
+    return h
+
+
+def test_port_board_puts_each_seeded_vessel_in_its_list(board_history):
+    out = S._port_board("port dickson", BOARD_NOW)
+    names = {k: [r.get("name") or r["mmsi"] for r in out[k]]
+             for k in ("at_port", "heading_in", "departed", "harbour_craft")}
+    assert names == {"at_port": ["999000001", "RAINA"], "heading_in": ["CASTOR"],
+                     "departed": [], "harbour_craft": ["RUBY"]}
+    raina = next(r for r in out["at_port"] if r["mmsi"] == "563413000")
+    assert raina["distance_nm"] == 3.9
+    assert raina["bearing"] == "S"
+    assert raina["arrived_after"] == "2026-10-15T07:00:00+00:00"
+    assert raina["arrived_by"] == "2026-10-15T09:00:00+00:00"
+    assert raina["eta_declared"] == "15-10 06:00"
+    assert raina["last_seen_minutes"] == 60
+    castor = out["heading_in"][0]
+    assert castor["distance_nm"] == 20.0
+    assert castor["speed_knots"] == 9.5
+
+
+def test_port_board_omits_an_unknown_eta_rather_than_sending_null(board_history):
+    out = S._port_board("port dickson", BOARD_NOW)
+    unknown = next(r for r in out["at_port"] if r["mmsi"] == "999000001")
+    assert "eta_declared" not in unknown
+    assert unknown["name"] is None
+
+
+def test_port_board_normalises_the_port_name_the_way_the_port_lookup_does(board_history):
+    """G19: the same padded, mixed case name everywhere a port is accepted."""
+    padded = S._port_board("  Port Dickson ", BOARD_NOW)
+    plain = S._port_board("port dickson", BOARD_NOW)
+    assert padded == plain
+    near = parse(S.vessels_near_port("  Port Dickson ", radius_nm=10))
+    assert "error" not in near
+
+
+def test_port_board_names_the_ports_it_has_when_asked_for_another(board_history):
+    out = parse(S.port_board("lumut"))
+    assert "port dickson" in out["error"]
+    assert out["at_port"] == [] and out["heading_in"] == []
+
+
+def test_port_board_without_history_says_so_and_lists_nothing():
+    S.set_history(None)
+    out = parse(S.port_board("port dickson"))
+    assert out["data"]["source"] == "unavailable"
+    assert all(out[k] == [] for k in ("at_port", "heading_in", "departed", "harbour_craft"))
+
+
+def test_port_board_reports_the_feed_as_snapshot_without_a_collector(board_history):
+    S.set_collector(None)
+    assert S._port_board("port dickson", BOARD_NOW)["data"]["feed"] == "snapshot"
+
+
+def test_residency_is_recounted_after_6h01_but_not_5h59(board_history, monkeypatch):
+    calls = []
+    real = board_history.days_present_in_box
+
+    def counting(*args):
+        calls.append(args)
+        return real(*args)
+
+    monkeypatch.setattr(board_history, "days_present_in_box", counting)
+    S._port_board("port dickson", BOARD_NOW)
+    S._port_board("port dickson", BOARD_NOW + timedelta(hours=5, minutes=59))
+    assert len(calls) == 1
+    S._port_board("port dickson", BOARD_NOW + timedelta(hours=6, minutes=1))
+    assert len(calls) == 2
+    assert S.RESIDENCY_TTL == timedelta(hours=6)
+
+
+@pytest.mark.anyio
+async def test_port_board_answers_through_the_protocol(board_history):
+    result = await _call("port_board", {"port": "port dickson"})
+    assert result is not None

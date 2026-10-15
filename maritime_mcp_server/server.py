@@ -38,6 +38,7 @@ from . import regions as regions_module
 from . import port_calls as port_calls_module
 from . import anchorages as anchorages_module
 from . import passages as passages_module
+from . import port_board as port_board_module
 
 DATA_FILE = files(__package__).joinpath("data/vessels.json")
 
@@ -1120,6 +1121,112 @@ def anchorages(
         "area": area,
         "anchorages": found,
     })
+
+
+#: How long a port's residency counts are kept. Counting them reads a fortnight
+#: of history, measured at 3.4 s on production, and the server answers one call
+#: at a time, so doing it on every board request would stall the live map. Who
+#: lives in a port changes over days, not minutes.
+RESIDENCY_TTL = timedelta(hours=6)
+_residency_cache: dict = {}
+
+
+def _box_around(centre, radius_nm):
+    """The square around a circle, as south, west, north, east."""
+    dlat = radius_nm / 60
+    dlon = radius_nm / (60 * math.cos(math.radians(centre[0])))
+    return centre[0] - dlat, centre[1] - dlon, centre[0] + dlat, centre[1] + dlon
+
+
+def _residency(port, box, now):
+    """Days present per vessel for one port, recounted at most every RESIDENCY_TTL."""
+    cached = _residency_cache.get(port)
+    if cached is not None and now - cached[0] < RESIDENCY_TTL:
+        return cached[1]
+    since = now - timedelta(days=port_board_module.RESIDENT_WINDOW_DAYS)
+    days = _history.days_present_in_box(since, now, *box)
+    _residency_cache[port] = (now, days)
+    return days
+
+
+def _port_board(port, now):
+    key = _filter_text(port)
+    if key not in port_board_module.BOARD_PORTS:
+        return {
+            "error": f"No board for {port.strip()!r}. Boards exist for: "
+                     + ", ".join(sorted(port_board_module.BOARD_PORTS)) + ".",
+            "at_port": [], "heading_in": [], "departed": [], "harbour_craft": [],
+        }
+    if _history is None:
+        return {"data": {"source": "unavailable"},
+                "error": "History is not enabled on this server.",
+                "at_port": [], "heading_in": [], "departed": [], "harbour_craft": []}
+
+    centre = PORT_COORDS[key]
+    radius = port_board_module.BOARD_PORTS[key]["radius_nm"]
+    aliases = port_board_module.port_aliases(key)
+    box = _box_around(centre, radius)
+
+    lookback = timedelta(hours=port_board_module.LOOKBACK_HOURS)
+    since = now - lookback - timedelta(hours=port_board_module.EDGE_HOURS)
+    candidates = _history.vessels_in_box(now - lookback, *box)
+    candidates |= {m for m, d in _history.destinations().items()
+                   if port_board_module.matches_port(d, aliases)}
+
+    fixes = {}
+    for mmsi in candidates:
+        track = _history.track(mmsi, since, now)
+        if track:
+            fixes[mmsi] = [{"observed_at": p["observed_at"], "lat": p["lat"],
+                            "lon": p["lon"], "sog": p["speed_knots"]} for p in track]
+
+    board = port_board_module.build_board(
+        fixes, _history.identities(fixes), _residency(key, box, now),
+        centre, radius, aliases, now)
+
+    return {
+        "data": {
+            "source": "history",
+            "port": key,
+            "centre": {"lat": centre[0], "lon": centre[1]},
+            "radius_nm": radius,
+            "generated_at": now.isoformat(timespec="seconds"),
+            "feed": "live" if _collector is not None else "snapshot",
+            "note": (
+                "Built from recorded positions. A ship stopped here is heard about "
+                "once an hour, so arrivals and departures are windows: "
+                "arrived_after to arrived_by, left_after to left_by. silent means "
+                "nothing has been heard for over six hours, which is not proof she "
+                "left. Distance, bearing, windows, hours_seen and harbour craft are "
+                "worked out here; flag comes from the MMSI; destination and "
+                "eta_declared are as typed by the crew."
+            ),
+        },
+        **{name: [_tidy(row) for row in rows] for name, rows in board.items()},
+    }
+
+
+@mcp.tool()
+def port_board(
+    port: Annotated[str, Field(
+        description="Port to report on. Only 'port dickson' has a board so far.")]
+        = "port dickson",
+) -> str:
+    """Which ships are at a port now, which are heading there, which just left.
+
+    For a port agent's desk. Four lists, built from recorded positions:
+
+    at_port: ships inside the port area, heard in the last six hours, that
+    stopped there or declared it. heading_in: ships declaring this port, heard
+    in the last twelve hours, still outside. departed: ships that stopped here
+    and left, or went quiet, in the last 48 hours. harbour_craft: tugs, ferries,
+    pilot boats and craft that live in the port, kept apart so they do not bury
+    the port calls.
+
+    Times are windows, not minutes, because coverage at the anchorage is about
+    one fix an hour. Read the note in the response before quoting a time.
+    """
+    return _respond(_port_board(port, datetime.now(timezone.utc)))
 
 
 @mcp.tool()

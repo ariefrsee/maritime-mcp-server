@@ -232,6 +232,71 @@ def test_track_of_an_unknown_vessel_is_empty_not_an_error(history):
     assert history.track("999999999", WHEN - timedelta(days=1)) == []
 
 
+# --- port board readers -------------------------------------------------------
+
+BOX = (2.38, 101.66, 2.66, 101.94)  # south, west, north, east around Port Dickson
+
+
+def test_vessels_in_box_lists_each_vessel_once_and_only_inside(history):
+    history.record_position("1", WHEN, 2.50, 101.80, 0.0, None)
+    history.record_position("1", WHEN + timedelta(minutes=30), 2.51, 101.80, 0.0, None)
+    history.record_position("2", WHEN, 1.26, 103.82, 0.0, None)           # Singapore
+    history.record_position("3", WHEN - timedelta(hours=2), 2.50, 101.80, 0.0, None)
+    assert history.vessels_in_box(WHEN - timedelta(hours=1), *BOX) == {"1"}
+
+
+def test_days_present_counts_dates_not_fixes(history):
+    for day in range(3):
+        for minute in (0, 10, 20):
+            history.record_position("7", WHEN + timedelta(days=day, minutes=minute),
+                                    2.50, 101.80, 0.0, None)
+    history.record_position("8", WHEN, 2.50, 101.80, 0.0, None)
+    history.record_position("8", WHEN + timedelta(days=1), 1.26, 103.82, 0.0, None)
+    counted = history.days_present_in_box(WHEN - timedelta(days=1),
+                                          WHEN + timedelta(days=5), *BOX)
+    assert counted == {"7": 3, "8": 1}
+
+
+def test_days_present_respects_both_ends_of_the_window(history):
+    history.record_position("7", WHEN - timedelta(days=2), 2.50, 101.80, 0.0, None)
+    history.record_position("7", WHEN, 2.50, 101.80, 0.0, None)
+    history.record_position("7", WHEN + timedelta(days=2), 2.50, 101.80, 0.0, None)
+    counted = history.days_present_in_box(WHEN - timedelta(hours=1),
+                                          WHEN + timedelta(hours=1), *BOX)
+    assert counted == {"7": 1}
+
+
+def test_a_new_database_has_the_time_index_the_board_queries_name(history):
+    """INDEXED BY fails outright if the index is missing, so it must always exist."""
+    names = {row[1] for row in history._connect().execute("PRAGMA index_list(positions)")}
+    assert "positions_time" in names
+
+
+def test_the_board_queries_read_through_the_time_index(history):
+    since = WHEN - timedelta(hours=1)
+    plan = history._connect().execute(
+        "EXPLAIN QUERY PLAN SELECT DISTINCT mmsi FROM positions INDEXED BY positions_time"
+        " WHERE observed_at >= ? AND lat BETWEEN 0 AND 1 AND lon BETWEEN 0 AND 1",
+        (since.isoformat(),)).fetchall()
+    assert any("positions_time" in row[-1] for row in plan)
+
+
+def test_identities_returns_what_was_recorded_and_omits_the_unknown(history):
+    history.record_identity("1", WHEN, name="RAINA", type="Tanker", flag="Singapore",
+                            length_m=183.0, destination="MY PDI", eta_declared="15-10 06:00")
+    found = history.identities(["1", "2"])
+    assert found == {"1": {"name": "RAINA", "type": "Tanker", "flag": "Singapore",
+                           "length_m": 183.0, "destination": "MY PDI",
+                           "eta_declared": "15-10 06:00"}}
+    assert history.identities([]) == {}
+
+
+def test_destinations_skips_vessels_that_never_declared_one(history):
+    history.record_identity("1", WHEN, name="A", destination="MY PDI")
+    history.record_identity("2", WHEN, name="B")
+    assert history.destinations() == {"1": "MY PDI"}
+
+
 # --- where the file lives ----------------------------------------------------
 
 def test_the_database_path_honours_the_environment(monkeypatch, tmp_path):
